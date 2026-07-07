@@ -16,11 +16,20 @@ const cors = require("cors");
 const app = express();
 
 app.use(cors());
+app.options("*", cors());
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Shapay API running");
 });
+
+
+// ONLY PAYMENT ROUTES
+const paymentRoutes = require("./routes/paymentRoutes");
+
+app.use("/payments", paymentRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 
