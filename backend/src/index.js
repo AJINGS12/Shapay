@@ -1,3 +1,10 @@
+
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err.message);
+  console.error(err.stack);
+});
+
+
 require("dotenv").config();
 
 const express = require("express");
