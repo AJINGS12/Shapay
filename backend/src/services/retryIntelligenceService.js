@@ -6,7 +6,7 @@ require("dotenv").config();
 const anthropic =
   new Anthropic({
     apiKey:
-      process.env.CLAUDE_API_KEY,
+      process.env.ANTHROPIC_API_KEY,
   });
 
 const generateRetryRecommendation =

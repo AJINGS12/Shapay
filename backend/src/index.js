@@ -1,32 +1,26 @@
-require("dotenv").config(); // 👈 MUST be first
-
-const emailPreviewRoute =
-  require("./routes/emailPreviewRoute");
-
-const aiRoutes =
-  require("./routes/aiRoutes");
-
-const simulationRoutes =
-  require("./routes/simulationRoutes");
-
-const recoveryAnalyticsRoutes =
-  require(
-    "./routes/recoveryAnalyticsRoutes"
-  );
-
+require("dotenv").config();
 
 const express = require("express");
-const axios = require("axios");
-// other imports...const express = require("express");
 const cors = require("cors");
+const axios = require("axios");
+
+const emailPreviewRoute = require("./routes/emailPreviewRoute");
+const aiRoutes = require("./routes/aiRoutes");
+const simulationRoutes = require("./routes/simulationRoutes");
+const recoveryAnalyticsRoutes = require("./routes/recoveryAnalyticsRoutes");
 
 const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://shapay-production.up.railway.app",
+      /\.vercel\.app$/,
+    ],
   })
 );
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -34,34 +28,21 @@ app.get("/", (req, res) => {
 });
 
 const nombaWebhook = require("./webhooks/nombaWebhook");
-
 app.use("/webhooks", nombaWebhook);
 app.use("/webhook", nombaWebhook);
-
-const PORT = 5000;
 
 const { getAccessToken } = require("./services/nombaAuthService");
 
 app.get("/test-token", async (req, res) => {
   try {
     const token = await getAccessToken();
-
-    res.json({
-      success: true,
-      message: "Nomba authentication successful",
-    });
+    res.json({ success: true, message: "Nomba authentication successful" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to generate token",
-    });
+    res.status(500).json({ success: false, message: "Failed to generate token" });
   }
 });
 
-const {
-  processRecurringBilling,
-} = require("./services/subscriptionBillingService");
-
+const { processRecurringBilling } = require("./services/subscriptionBillingService");
 const paymentRoutes = require("./routes/paymentRoutes");
 const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
@@ -74,22 +55,21 @@ app.use("/reports", reportingRoutes);
 app.use(emailPreviewRoute);
 app.use(aiRoutes);
 app.use(simulationRoutes);
-app.use(
-  recoveryAnalyticsRoutes
-);
+app.use(recoveryAnalyticsRoutes);
 
 setInterval(() => {
   processRecurringBilling();
 }, 60 * 1000);
 
 app.get("/payment/callback", (req, res) => {
-  res.redirect("http://localhost:3000/payments/callback");
+  res.json({ success: true, message: "Payment completed" });
 });
 
 app.get("/payments/callback", (req, res) => {
-  res.redirect("http://localhost:3000/payments/callback");
+  res.json({ success: true, message: "Payment completed" });
 });
 
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
