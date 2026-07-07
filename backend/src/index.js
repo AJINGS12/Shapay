@@ -136,25 +136,47 @@ try {
 
 
 // PAYMENT CALLBACKS
+const { verifyTransaction } = require("./services/nombaVerifyService");
+const { updatePaymentStatus } = require("./database/paymentStore");
 
-app.get("/payment/callback", (req, res) => {
+const handlePaymentCallback = async (req, res) => {
+  try {
+    const { orderReference } = req.query;
 
-  res.json({
-    success: true,
-    message: "Payment completed",
-  });
+    if (!orderReference) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing orderReference",
+      });
+    }
 
-});
+    const result = await verifyTransaction(orderReference);
 
+    if (result.success) {
+      await updatePaymentStatus(orderReference, "paid", {});
+    }
 
-app.get("/payments/callback", (req, res) => {
+    return res.json({
+      success: result.success,
+      message: result.success
+        ? "Payment completed"
+        : "Payment not yet confirmed",
+    });
+  } catch (error) {
+    console.error(
+      "CALLBACK VERIFY ERROR:",
+      error.response?.data || error.message
+    );
 
-  res.json({
-    success: true,
-    message: "Payment completed",
-  });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
 
-});
+app.get("/payment/callback", handlePaymentCallback);
+app.get("/payments/callback", handlePaymentCallback);
 
 
 // GLOBAL ERROR HANDLER
