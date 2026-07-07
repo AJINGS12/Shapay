@@ -10,7 +10,7 @@ const getAccessToken = async () => {
     }
 
     const response = await axios.post(
-      `${process.env.NOMBA_BASE_URL}/v1/auth/token/issue`,
+      "https://sandbox.api.nomba.com/v1/auth/token/issue",
       {
         grant_type: "client_credentials",
         client_id: process.env.NOMBA_CLIENT_ID,
