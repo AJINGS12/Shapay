@@ -9,8 +9,16 @@ const getAccessToken = async () => {
       return cachedToken;
     }
 
+    // Debug logs — now run on every call, right before the request
+    console.log("DEBUG - Client ID exists:", !!process.env.NOMBA_CLIENT_ID);
+    console.log("DEBUG - Client Secret exists:", !!process.env.NOMBA_CLIENT_SECRET);
+    console.log("DEBUG - Account ID:", process.env.NOMBA_PARENT_ACCOUNT_ID);
+    console.log("DEBUG - Base URL:", process.env.NOMBA_BASE_URL);
+
+    const baseUrl = process.env.NOMBA_BASE_URL || "https://sandbox.api.nomba.com";
+
     const response = await axios.post(
-      "https://api.nomba.com/v1/auth/token/issue",
+      `${baseUrl}/v1/auth/token/issue`,
       {
         grant_type: "client_credentials",
         client_id: process.env.NOMBA_CLIENT_ID,
