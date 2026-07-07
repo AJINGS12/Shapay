@@ -1,13 +1,3 @@
-process.on("uncaughtException", (err) => {
-  console.error("UNCAUGHT EXCEPTION:");
-  console.error(err);
-});
-
-process.on("unhandledRejection", (reason) => {
-  console.error("UNHANDLED REJECTION:");
-  console.error(reason);
-});
-
 require("dotenv").config();
 
 const express = require("express");
@@ -16,23 +6,14 @@ const cors = require("cors");
 const app = express();
 
 app.use(cors());
-app.options("*", cors());
-
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Shapay API running");
 });
 
-
-// ONLY PAYMENT ROUTES
-const paymentRoutes = require("./routes/paymentRoutes");
-
-app.use("/payments", paymentRoutes);
-
-
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
