@@ -4,6 +4,17 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 
+import { signOut } from "firebase/auth";
+
+
+import { useRouter } from "next/navigation";
+
+import {
+  onAuthStateChanged,
+} from "firebase/auth";
+
+import { auth } from "../firebase";
+
 import {
   ResponsiveContainer,
   AreaChart,
@@ -19,6 +30,8 @@ import {
   Activity,
   BarChart3,
   Settings,
+  Menu,
+  X,
 } from "lucide-react";
 
 type Analytics = {
@@ -45,9 +58,32 @@ type ActivityItem = {
   createdAt: string;
 };
 
+const mockRetryRecommendations = [
+  {
+    customer: "Ismail",
+    retryDelay: "24 Hours",
+    reasoning:
+      "Customers often top up accounts within 24 hours after insufficient funds.",
+  },
+  {
+    customer: "Sarah",
+    retryDelay: "48 Hours",
+    reasoning:
+      "Retrying after salary cycles improves recovery success rates.",
+  },
+];
+
 export default function Home() {
   const [analytics, setAnalytics] =
     useState<Analytics | null>(null);
+
+  const [aiInsights, setAiInsights] =
+  useState<
+    {
+      title: string;
+      description: string;
+    }[]
+  >([]);
 
   const [payments, setPayments] =
     useState<Payment[]>([]);
@@ -55,18 +91,141 @@ export default function Home() {
   const [activities, setActivities] =
   useState<ActivityItem[]>([]);
 
+  const [
+  retryRecommendations,
+  setRetryRecommendations,
+] = useState<
+  {
+    customer: string;
+    retryDelay: string;
+    reasoning: string;
+  }[]
+>(mockRetryRecommendations);
+
+const [
+  recoveryMetrics,
+  setRecoveryMetrics,
+] = useState<any>(null);
+
+const [sidebarOpen, setSidebarOpen] =
+  useState(false);
+
+
+
+  const router = useRouter();
+
+  const handleLogout =
+  async () => {
+    await signOut(auth);
+
+    router.push("/login");
+  };
+
+  const simulateFailure =
+  async () => {
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/simulate/payment-failure`
+      );
+
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const createCheckout = () => {
+    router.push("/payment-test");
+  };
+
+  useEffect(() => {
+  const unsubscribe =
+    onAuthStateChanged(
+      auth,
+      (user) => {
+        if (!user) {
+          router.push("/login");
+        }
+      }
+    );
+
+  return () => unsubscribe();
+}, [router]);
+
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/analytics/overview"
+          `${process.env.NEXT_PUBLIC_API_URL}/analytics/overview`
         );
 
         setAnalytics(response.data.analytics);
 
+        const analyticsData =
+  response.data.analytics;
+
+const insights = [];
+
+if (
+  analyticsData.totalRevenue > 0
+) {
+  insights.push({
+    title: "Revenue Activity",
+    description: `Your platform has processed ₦${analyticsData.totalRevenue} in total revenue.`,
+  });
+}
+
+const successRate =
+  analyticsData.totalPayments === 0
+    ? 0
+    : Math.round(
+        (analyticsData.successfulPayments /
+          analyticsData.totalPayments) *
+          100
+      );
+
+if (successRate >= 90) {
+  insights.push({
+    title:
+      "Healthy Payment Performance",
+    description: `Payment success rate is performing strongly at ${successRate}%.`,
+  });
+} else {
+  insights.push({
+    title:
+      "Payment Performance Alert",
+    description:
+      "Payment success rate may require operational review.",
+  });
+}
+
+if (
+  analyticsData.activeSubscriptions >
+  0
+) {
+  insights.push({
+    title:
+      "Recurring Revenue Growth",
+    description: `${analyticsData.activeSubscriptions} active subscriptions are generating recurring revenue.`,
+  });
+}
+
+if (
+  analyticsData.failedPayments === 0
+) {
+  insights.push({
+    title:
+      "Low Failure Rate",
+    description:
+      "No failed payments detected recently.",
+  });
+}
+
+setAiInsights(insights);
+
         const paymentsResponse =
           await axios.get(
-            "http://localhost:5000/reports/payments"
+            `${process.env.NEXT_PUBLIC_API_URL}/reports/payments`
           );
 
         setPayments(
@@ -75,12 +234,33 @@ export default function Home() {
 
         const activitiesResponse =
           await axios.get(
-            "http://localhost:5000/reports/activity"
-     );
+            `${process.env.NEXT_PUBLIC_API_URL}/reports/activity`
+          );
 
 setActivities(
   activitiesResponse.data.activities
 );
+
+const retryResponse =
+  await axios.get(
+    `${process.env.NEXT_PUBLIC_API_URL}/ai/retry-recommendations`
+  );
+
+setRetryRecommendations(
+  retryResponse.data
+    .recommendations
+);
+
+const recoveryResponse =
+  await axios.get(
+    `${process.env.NEXT_PUBLIC_API_URL}/analytics/recovery`
+  );
+
+setRecoveryMetrics(
+  recoveryResponse.data.metrics
+);
+
+
       } catch (error) {
         console.log(error);
       }
@@ -116,18 +296,51 @@ setActivities(
   []
 );
 
+if (!analytics) {
+  return (
+    <main className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-500 text-xl">
+        Loading Dashboard...
+      </p>
+    </main>
+  );
+}
+
   return (
     <main className="min-h-screen bg-[#F5F7FB] flex">
+      {/* MOBILE BACKDROP */}
+
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+        />
+      )}
+
       {/* SIDEBAR */}
 
-      <aside className="w-72 bg-white border-r border-gray-200 p-6">
-        <h1 className="text-4xl font-bold text-blue-600 mb-10">
-          Shapay
-        </h1>
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 p-6 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between mb-10">
+          <h1 className="text-4xl font-bold text-blue-600">
+            Shapay
+          </h1>
+
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="md:hidden text-gray-500 hover:text-gray-700"
+          >
+            <X size={24} />
+          </button>
+        </div>
 
         <nav className="space-y-3">
           <Link
               href="/"
+            onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 bg-blue-600 text-white p-4 rounded-2xl"
       >
           <LayoutDashboard size={20} />
@@ -139,6 +352,7 @@ setActivities(
 
           <Link
              href="/payments"
+            onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
             >
             <CreditCard size={20} />
@@ -147,6 +361,7 @@ setActivities(
 
           <Link
   href="/subscriptions"
+  onClick={() => setSidebarOpen(false)}
   className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
      >
         <Repeat size={20} />
@@ -158,38 +373,64 @@ setActivities(
             <span>Activity</span>
           </div>
 
-          <div className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition">
-            <BarChart3 size={20} />
-            <span>Analytics</span>
-          </div>
+          <Link
+            href="/analytics"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
+         >
+          <BarChart3 size={20} />
+          <span>Analytics</span>
+         </Link>
 
-          <div className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition">
-            <Settings size={20} />
-            <span>Settings</span>
-          </div>
+          <Link
+           href="/settings"
+           onClick={() => setSidebarOpen(false)}
+           className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
+          >
+          <Settings size={20} />
+          <span>Settings</span>
+          </Link>
         </nav>
       </aside>
 
       {/* MAIN CONTENT */}
 
-      <section className="flex-1 p-10">
+      <section className="flex-1 p-4 md:p-10">
         {/* HEADER */}
 
-        <div className="mb-10 flex items-center justify-between">
-          <div>
-            <h2 className="text-5xl font-bold text-gray-900">
-              Welcome back 👋
-            </h2>
+        <div className="mb-10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden bg-white border border-gray-200 text-gray-700 p-3 rounded-2xl shadow-sm"
+            >
+              <Menu size={24} />
+            </button>
 
-            <p className="text-gray-500 mt-3 text-lg">
-              Here’s what’s happening with
-              your business today.
-            </p>
+            <div>
+              <h2 className="text-3xl md:text-5xl font-bold text-gray-900">
+                Welcome back 👋
+              </h2>
+
+              <p className="text-gray-500 mt-1 md:mt-3 text-sm md:text-lg">
+                Here’s what’s happening with
+                your business today.
+              </p>
+            </div>
           </div>
 
-          <button className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg">
-            Export Report
+          <div className="flex items-center gap-4">
+          <button className="hidden sm:block bg-white border border-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-semibold hover:bg-gray-50 transition">
+          Merchant
           </button>
+
+         <button
+         onClick={handleLogout}
+         className="bg-blue-600 hover:bg-blue-700 transition text-white px-4 md:px-6 py-3 md:py-4 rounded-2xl font-semibold shadow-lg"
+        >
+        Logout
+        </button>
+        </div>
         </div>
 
         {!analytics ? (
@@ -198,26 +439,35 @@ setActivities(
           </p>
         ) : (
           <>
+            <div className="mb-6 flex flex-wrap items-center gap-3">
+              <button
+                onClick={createCheckout}
+                className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg"
+              >
+                Generate Payment Checkout
+              </button>
+            </div>
+
             {/* KPI CARDS */}
 
-            <div className="grid grid-cols-3 gap-6">
-              <div className="bg-white rounded-3xl p-7 shadow-sm border border-gray-100">
-                <p className="text-gray-500">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
+                <p className="text-gray-500 text-sm md:text-base">
                   Total Revenue
                 </p>
 
-                <h3 className="text-4xl font-bold text-gray-900 mt-4">
+                <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-4">
                   ₦
                   {analytics.totalRevenue}
                 </h3>
               </div>
 
-              <div className="bg-white rounded-3xl p-7 shadow-sm border border-gray-100">
-                <p className="text-gray-500">
+              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
+                <p className="text-gray-500 text-sm md:text-base">
                   Monthly Recurring Revenue
                 </p>
 
-                <h3 className="text-4xl font-bold text-gray-900 mt-4">
+                <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-4">
                   ₦
                   {
                     analytics.monthlyRecurringRevenue
@@ -225,67 +475,112 @@ setActivities(
                 </h3>
               </div>
 
-              <div className="bg-white rounded-3xl p-7 shadow-sm border border-gray-100">
-                <p className="text-gray-500">
+              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
+                <p className="text-gray-500 text-sm md:text-base">
                   Active Subscriptions
                 </p>
 
-                <h3 className="text-4xl font-bold text-gray-900 mt-4">
+                <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-4">
                   {
                     analytics.activeSubscriptions
                   }
                 </h3>
               </div>
 
-              <div className="bg-white rounded-3xl p-7 shadow-sm border border-gray-100">
-                <p className="text-gray-500">
+              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
+                <p className="text-gray-500 text-sm md:text-base">
                   Total Payments
                 </p>
 
-                <h3 className="text-4xl font-bold text-gray-900 mt-4">
+                <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-4">
                   {analytics.totalPayments}
                 </h3>
               </div>
 
-              <div className="bg-white rounded-3xl p-7 shadow-sm border border-gray-100">
-                <p className="text-gray-500">
+              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
+                <p className="text-gray-500 text-sm md:text-base">
                   Successful Payments
                 </p>
 
-                <h3 className="text-4xl font-bold text-green-600 mt-4">
+                <h3 className="text-2xl md:text-4xl font-bold text-green-600 mt-2 md:mt-4">
                   {
                     analytics.successfulPayments
                   }
                 </h3>
               </div>
 
-              <div className="bg-white rounded-3xl p-7 shadow-sm border border-gray-100">
-                <p className="text-gray-500">
+              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
+                <p className="text-gray-500 text-sm md:text-base">
                   Failed Payments
                 </p>
 
-                <h3 className="text-4xl font-bold text-red-500 mt-4">
+                <h3 className="text-2xl md:text-4xl font-bold text-red-500 mt-2 md:mt-4">
                   {analytics.failedPayments}
                 </h3>
               </div>
             </div>
 
+            {/* AI INSIGHTS */}
+
+<div className="mt-8 md:mt-10">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div>
+      <h3 className="text-xl md:text-3xl font-bold text-gray-900">
+        AI Financial Insights
+      </h3>
+
+      <p className="text-gray-500 mt-1 md:mt-2 text-sm md:text-base">
+        Intelligent operational insights
+        powered by Shapay AI.
+      </p>
+    </div>
+
+    <div className="bg-blue-600 text-white px-4 py-2 md:px-5 md:py-3 rounded-2xl font-semibold shadow-lg text-sm md:text-base self-start">
+      AI Powered
+    </div>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+    {aiInsights.map(
+      (insight, index) => (
+        <div
+          key={index}
+          className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 border border-gray-100 shadow-sm"
+        >
+          <div className="bg-blue-100 text-blue-600 text-xs md:text-sm font-semibold px-3 py-1.5 md:px-4 md:py-2 rounded-full inline-block mb-4 md:mb-5">
+            AI Insight
+          </div>
+
+          <h4 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">
+            {insight.title}
+          </h4>
+
+          <p className="text-gray-600 text-sm md:text-base leading-6 md:leading-7">
+            {insight.description}
+          </p>
+        </div>
+      )
+    )}
+  </div>
+</div>
+
+
             {/* CHART SECTION */}
 
-            <div className="mt-10 bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
+            <div className="mt-8 md:mt-10 bg-white rounded-2xl md:rounded-3xl p-5 md:p-8 border border-gray-100 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-lg md:text-2xl font-bold text-gray-900">
                     Revenue Overview
                   </h3>
 
-                  <p className="text-gray-500 mt-1">
+                  <p className="text-gray-500 mt-1 text-sm md:text-base">
                     Revenue analytics and
                     recurring billing growth.
                   </p>
                 </div>
 
-                <button className="bg-blue-600 text-white px-5 py-3 rounded-xl">
+                <button className="bg-blue-600 text-white px-4 py-2.5 md:px-5 md:py-3 rounded-xl text-sm md:text-base w-full sm:w-auto">
                   View Analytics
                 </button>
               </div>
@@ -339,20 +634,61 @@ setActivities(
 
             {/* PAYMENTS TABLE */}
 
-            <div className="mt-10 bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+            <div className="mt-8 md:mt-10 bg-white rounded-2xl md:rounded-3xl p-5 md:p-8 border border-gray-100 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-lg md:text-2xl font-bold text-gray-900">
                     Recent Payments
                   </h3>
 
-                  <p className="text-gray-500 mt-1">
+                  <p className="text-gray-500 mt-1 text-sm md:text-base">
                     Latest merchant transactions.
                   </p>
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* MOBILE CARD LIST */}
+              <div className="md:hidden space-y-3">
+                {payments.map(
+                  (payment, index) => (
+                    <div
+                      key={index}
+                      className="border border-gray-100 rounded-2xl p-4"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-900 font-medium text-sm">
+                          {payment.customerName}
+                        </p>
+
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            payment.status === "paid"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-600"
+                          }`}
+                        >
+                          {payment.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-gray-700 font-semibold">
+                          ₦{payment.amount}
+                        </p>
+
+                        <p className="text-gray-500 text-xs">
+                          {new Date(
+                            payment.createdAt
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* DESKTOP TABLE */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="text-left border-b border-gray-100">
@@ -464,6 +800,123 @@ setActivities(
           </div>
         </div>
       ))}
+  </div>
+</div>
+
+{/* RECOVERY ANALYTICS */}
+
+<div className="mt-10">
+  <div className="flex items-center justify-between mb-6">
+    <div>
+      <h3 className="text-3xl font-bold text-gray-900">
+        Recovery Analytics
+      </h3>
+
+      <p className="text-gray-500 mt-2">
+        AI-powered subscription recovery performance.
+      </p>
+    </div>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+  {recoveryMetrics && [
+    {
+      title: "Recovered Revenue",
+      value: `₦${recoveryMetrics.recoveredRevenue.toLocaleString()}`,
+    },
+
+    {
+      title: "Recovery Success Rate",
+      value: `${recoveryMetrics.recoveryRate}%`,
+    },
+
+    {
+      title: "Recovered Subscriptions",
+      value: recoveryMetrics.recoveredSubscriptions,
+    },
+
+    {
+      title: "AI Retry Success",
+      value: `+${recoveryMetrics.aiRetrySuccess}%`,
+    },
+  ].map((metric, index) => (
+    <div
+      key={index}
+      className="bg-white rounded-3xl p-7 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+    >
+      <p className="text-gray-500 text-sm">
+        {metric.title}
+      </p>
+
+      <h4 className="text-4xl font-bold text-gray-900 mt-4">
+        {metric.value}
+      </h4>
+    </div>
+  ))}
+</div>
+</div>
+
+            {/* AI RETRY INTELLIGENCE */}
+
+<div className="mt-10">
+  <div className="flex items-center justify-between mb-6">
+    <div>
+      <h3 className="text-3xl font-bold text-gray-900">
+        AI Recovery Intelligence
+      </h3>
+      <p className="text-gray-500 mt-2">
+        Intelligent retry recommendations
+        powered by Shapay AI.
+      </p>
+    </div>
+    <button
+    onClick={simulateFailure}
+    className="bg-red-500 hover:bg-red-600 transition text-white px-5 py-3 rounded-2xl font-semibold shadow-lg"
+    >
+    Simulate Failed Payment
+    </button>
+    <div className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-semibold shadow-lg">
+      AI Powered
+    </div>
+  </div>
+  <div className="grid grid-cols-2 gap-6">
+    {retryRecommendations.map(
+      (recommendation, index) => (
+        <div
+          key={index}
+          className="bg-white rounded-3xl p-7 border border-gray-100 shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-sm text-gray-500">
+                Customer
+              </p>
+              <h4 className="text-xl font-bold text-gray-900 mt-1">
+                {
+                  recommendation.customer
+                }
+              </h4>
+            </div>
+            <div className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold">
+              Retry in{" "}
+              {
+                recommendation.retryDelay
+              }
+            </div>
+          </div>
+          <div className="bg-gray-50 rounded-2xl p-5">
+            <p className="text-sm font-semibold text-gray-700 mb-2">
+              AI Reasoning
+            </p>
+            <p className="text-gray-600 leading-7">
+              {
+                recommendation.reasoning
+              }
+            </p>
+          </div>
+        </div>
+      )
+    )}
   </div>
 </div>
           </>

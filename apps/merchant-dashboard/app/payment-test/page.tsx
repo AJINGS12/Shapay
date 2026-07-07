@@ -21,7 +21,7 @@ export default function PaymentTestPage() {
       setLoading(true);
 
       const response = await axios.post(
-        "http://localhost:5000/payments/initialize",
+        `${process.env.NEXT_PUBLIC_API_URL}/payments/initialize`,
         {
           amount: Number(amount),
           customerName,

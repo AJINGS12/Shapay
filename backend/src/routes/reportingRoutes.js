@@ -1,18 +1,18 @@
 const express = require("express");
 
 const {
-  getAllPayments,
+  getPayments,
 } = require("../database/paymentStore");
 
 const {
-  getAllSubscriptions,
+  getSubscriptions,
 } = require("../database/subscriptionStore");
 
 const router = express.Router();
 
-router.get("/payments", (req, res) => {
+router.get("/payments", async (req, res) => {
   try {
-    const payments = getAllPayments();
+    const payments = await getPayments();
 
     const sortedPayments = payments.sort(
       (a, b) =>
@@ -35,10 +35,10 @@ router.get("/payments", (req, res) => {
   }
 });
 
-router.get("/subscriptions", (req, res) => {
+router.get("/subscriptions", async (req, res) => {
   try {
     const subscriptions =
-      getAllSubscriptions();
+      await getSubscriptions();
 
     const sortedSubscriptions =
       subscriptions.sort(
@@ -64,12 +64,11 @@ router.get("/subscriptions", (req, res) => {
   }
 });
 
-router.get("/activity", (req, res) => {
+router.get("/activity", async (req, res) => {
   try {
-    const payments = getAllPayments();
+    const payments = await getPayments();
 
-    const subscriptions =
-      getAllSubscriptions();
+    const subscriptions = await getSubscriptions();
 
     const paymentActivities =
       payments.map((payment) => ({

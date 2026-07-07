@@ -13,12 +13,32 @@ type Payment = {
 export default function PaymentsPage() {
   const [payments, setPayments] =
     useState<Payment[]>([]);
+  const [customerName, setCustomerName] = useState("");
+  const [email, setEmail] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const createCheckout = async () => {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/payments/create-checkout`,
+        {
+          amount: Number(amount),
+          customerName,
+          email,
+        }
+      );
+
+      window.open(response.data.checkoutLink, "_blank");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/reports/payments"
+          `${process.env.NEXT_PUBLIC_API_URL}/reports/payments`
         );
 
         setPayments(response.data.payments);
@@ -35,14 +55,64 @@ export default function PaymentsPage() {
       {/* HEADER */}
 
       <div className="mb-10">
-        <h1 className="text-5xl font-bold text-gray-900">
-          Payments
-        </h1>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-5xl font-bold text-gray-900">
+              Payments
+            </h1>
 
-        <p className="text-gray-500 mt-3 text-lg">
-          Monitor merchant payment
-          transactions and statuses.
-        </p>
+            <p className="text-gray-500 mt-3 text-lg">
+              Monitor merchant payment
+              transactions and statuses.
+            </p>
+          </div>
+
+          <button
+            onClick={createCheckout}
+            className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg"
+          >
+            Generate Payment Checkout
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm mb-10">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          Create Payment Checkout
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input
+            type="text"
+            placeholder="Customer Name"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            className="border border-gray-200 rounded-2xl px-5 py-4 outline-none"
+          />
+
+          <input
+            type="email"
+            placeholder="Customer Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border border-gray-200 rounded-2xl px-5 py-4 outline-none"
+          />
+
+          <input
+            type="number"
+            placeholder="Amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="border border-gray-200 rounded-2xl px-5 py-4 outline-none"
+          />
+        </div>
+
+        <button
+          onClick={createCheckout}
+          className="mt-6 bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg"
+        >
+          Generate Checkout
+        </button>
       </div>
 
       {/* PAYMENTS TABLE */}

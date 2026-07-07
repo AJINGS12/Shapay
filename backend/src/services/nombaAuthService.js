@@ -5,7 +5,6 @@ let tokenExpiry = null;
 
 const getAccessToken = async () => {
   try {
-    // return cached token if still valid
     if (cachedToken && tokenExpiry && Date.now() < tokenExpiry) {
       return cachedToken;
     }
@@ -13,9 +12,9 @@ const getAccessToken = async () => {
     const response = await axios.post(
       `${process.env.NOMBA_BASE_URL}/v1/auth/token/issue`,
       {
-        grantType: "client_credentials", // ✅ REQUIRED
-        clientId: process.env.NOMBA_CLIENT_ID,
-        clientSecret: process.env.NOMBA_CLIENT_SECRET,
+        grant_type: "client_credentials",
+        client_id: process.env.NOMBA_CLIENT_ID,
+        client_secret: process.env.NOMBA_CLIENT_SECRET,
       },
       {
         headers: {
@@ -25,13 +24,24 @@ const getAccessToken = async () => {
       }
     );
 
-    const accessToken = response.data.data.accessToken;
+    console.log(
+      "NOMBA AUTH RESPONSE:",
+      JSON.stringify(response.data, null, 2)
+    );
 
-    // cache token for ~55 mins
+    const accessToken =
+      response.data?.data?.access_token ||
+      response.data?.data?.accessToken ||
+      response.data?.access_token;
+
+    if (!accessToken || accessToken.split(".").length !== 3) {
+      throw new Error("Invalid JWT received from Nomba auth response");
+    }
+
     cachedToken = accessToken;
     tokenExpiry = Date.now() + 55 * 60 * 1000;
 
-    console.log("New Nomba access token generated");
+    console.log("✅ New Nomba access token generated");
 
     return accessToken;
   } catch (error) {

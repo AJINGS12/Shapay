@@ -1,5 +1,5 @@
 const {
-  getAllSubscriptions,
+  getSubscriptions,
   updateSubscription,
 } = require("../database/subscriptionStore");
 
@@ -14,7 +14,7 @@ const {
 const processRecurringBilling = async () => {
   console.log("Running recurring billing job...");
 
-  const subscriptions = getAllSubscriptions();
+  const subscriptions = await getSubscriptions();
 
   const now = new Date();
 

@@ -2,7 +2,7 @@ const express = require("express");
 
 const {
   saveSubscription,
-  getAllSubscriptions,
+  getSubscriptions,
 } = require("../database/subscriptionStore");
 
 const {
@@ -50,7 +50,7 @@ router.post("/create", async (req, res) => {
     subscription.orderReference =
       payment.data.orderReference;
 
-    saveSubscription(subscription);
+    await saveSubscription(subscription);
 
     res.status(201).json({
       success: true,
@@ -67,15 +67,16 @@ router.post("/create", async (req, res) => {
   }
 });
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const subscriptions = getAllSubscriptions();
+    const subscriptions = await getSubscriptions();
 
     res.status(200).json({
       success: true,
       subscriptions,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       success: false,
     });

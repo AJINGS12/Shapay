@@ -1,5 +1,20 @@
 require("dotenv").config(); // 👈 MUST be first
 
+const emailPreviewRoute =
+  require("./routes/emailPreviewRoute");
+
+const aiRoutes =
+  require("./routes/aiRoutes");
+
+const simulationRoutes =
+  require("./routes/simulationRoutes");
+
+const recoveryAnalyticsRoutes =
+  require(
+    "./routes/recoveryAnalyticsRoutes"
+  );
+
+
 const express = require("express");
 const axios = require("axios");
 // other imports...const express = require("express");
@@ -21,6 +36,7 @@ app.get("/", (req, res) => {
 const nombaWebhook = require("./webhooks/nombaWebhook");
 
 app.use("/webhooks", nombaWebhook);
+app.use("/webhook", nombaWebhook);
 
 const PORT = 5000;
 
@@ -55,13 +71,23 @@ app.use("/payments", paymentRoutes);
 app.use("/subscriptions", subscriptionRoutes);
 app.use("/analytics", analyticsRoutes);
 app.use("/reports", reportingRoutes);
+app.use(emailPreviewRoute);
+app.use(aiRoutes);
+app.use(simulationRoutes);
+app.use(
+  recoveryAnalyticsRoutes
+);
 
 setInterval(() => {
   processRecurringBilling();
 }, 60 * 1000);
 
 app.get("/payment/callback", (req, res) => {
-  res.send("Payment completed successfully");
+  res.redirect("http://localhost:3000/payments/callback");
+});
+
+app.get("/payments/callback", (req, res) => {
+  res.redirect("http://localhost:3000/payments/callback");
 });
 
 app.listen(PORT, () => {

@@ -2,6 +2,23 @@ const axios = require("axios");
 
 const { getAccessToken } = require("./nombaAuthService");
 
+const buildCheckoutPayload = ({
+  amount,
+  customerName,
+  customerEmail,
+  merchantTxRef,
+}) => ({
+  order: {
+    amount,
+    currency: "NGN",
+    customerName,
+    customerEmail,
+    merchantTxRef,
+    callbackUrl: process.env.APP_CALLBACK_URL,
+    webhookUrl: `${process.env.BACKEND_BASE_URL || "http://localhost:5000"}/webhook/nomba`,
+  },
+});
+
 const initializePayment = async ({
   amount,
   customerName,
@@ -11,16 +28,12 @@ const initializePayment = async ({
   try {
     const accessToken = await getAccessToken();
 
-    const payload = {
-      order: {
-        amount,
-        currency: "NGN",
-        customerName,
-        customerEmail,
-        merchantTxRef,
-        callbackUrl: process.env.APP_CALLBACK_URL,
-      },
-    };
+    const payload = buildCheckoutPayload({
+      amount,
+      customerName,
+      customerEmail,
+      merchantTxRef,
+    });
 
     console.log("Order payload:", payload);
 
@@ -39,10 +52,18 @@ const initializePayment = async ({
     console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log("Checkout Initialization Error");
+    console.log(
+      "Checkout Initialization Error"
+    );
 
     if (error.response) {
-      console.log(error.response.data);
+      console.log(
+        JSON.stringify(
+          error.response.data,
+          null,
+          2
+        )
+      );
     } else {
       console.log(error.message);
     }
@@ -52,5 +73,6 @@ const initializePayment = async ({
 };
 
 module.exports = {
+  buildCheckoutPayload,
   initializePayment,
 };
