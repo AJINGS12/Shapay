@@ -7,6 +7,13 @@ process.on('uncaughtException', (err) => {
 
 require("dotenv").config();
 
+console.log("NOMBA ENV CHECK:", {
+  NOMBA_BASE_URL: process.env.NOMBA_BASE_URL,
+  CLIENT_ID_EXISTS: !!process.env.NOMBA_CLIENT_ID,
+  CLIENT_SECRET_EXISTS: !!process.env.NOMBA_CLIENT_SECRET,
+  ACCOUNT_ID_EXISTS: !!process.env.NOMBA_ACCOUNT_ID,
+});
+
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");

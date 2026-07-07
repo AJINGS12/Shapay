@@ -8,15 +8,13 @@ const buildCheckoutPayload = ({
   customerEmail,
   merchantTxRef,
 }) => ({
-  order: {
-    amount,
-    currency: "NGN",
-    customerName,
-    customerEmail,
-    merchantTxRef,
-    callbackUrl: process.env.APP_CALLBACK_URL,
-    webhookUrl: `${process.env.BACKEND_BASE_URL || "http://localhost:5000"}/webhook/nomba`,
-  },
+  amount: Number(amount),
+  currency: "NGN",
+  customerName,
+  customerEmail,
+  merchantTxRef,
+  callbackUrl: process.env.APP_CALLBACK_URL,
+  webhookUrl: `${process.env.BACKEND_BASE_URL}/webhook/nomba`,
 });
 
 const initializePayment = async ({
@@ -35,10 +33,23 @@ const initializePayment = async ({
       merchantTxRef,
     });
 
-    console.log("Order payload:", payload);
+    console.log(
+      "CHECKOUT PAYLOAD:",
+      JSON.stringify(payload, null, 2)
+    );
+
+    console.log(
+      "NOMBA BASE URL:",
+      process.env.NOMBA_BASE_URL
+    );
+
+    console.log(
+      "ACCOUNT ID:",
+      process.env.NOMBA_PARENT_ACCOUNT_ID
+    );
 
     const response = await axios.post(
-      "https://sandbox.nomba.com/v1/checkout/order",
+      `${process.env.NOMBA_BASE_URL}/v1/checkout/order`,
       payload,
       {
         headers: {
@@ -49,15 +60,25 @@ const initializePayment = async ({
       }
     );
 
-    console.log(response.data);
-    return response.data;
-  } catch (error) {
     console.log(
-      "Checkout Initialization Error"
+      "CHECKOUT RESPONSE:",
+      JSON.stringify(response.data, null, 2)
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.log("Checkout Initialization Error");
+
+    console.log(
+      "ERROR STATUS:",
+      error.response?.status
     );
 
     if (error.response) {
       console.log(
+        "ERROR DATA:",
         JSON.stringify(
           error.response.data,
           null,
@@ -65,7 +86,10 @@ const initializePayment = async ({
         )
       );
     } else {
-      console.log(error.message);
+      console.log(
+        "ERROR MESSAGE:",
+        error.message
+      );
     }
 
     throw error;
