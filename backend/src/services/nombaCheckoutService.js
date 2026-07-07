@@ -39,7 +39,7 @@ const initializePayment = async ({
     console.log("ACCOUNT ID:", process.env.NOMBA_PARENT_ACCOUNT_ID);
 
     const response = await axios.post(
-      `${process.env.NOMBA_BASE_URL}/sandbox/checkout/order`,
+      `${process.env.NOMBA_BASE_URL}/v1/checkout/order`,
       payload,
       {
         headers: {

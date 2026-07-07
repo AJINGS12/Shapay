@@ -6,12 +6,9 @@ const verifyTransaction = async (orderReference) => {
     const accessToken = await getAccessToken();
 
     const response = await axios.get(
-      `${process.env.NOMBA_BASE_URL}/sandbox/checkout/transaction`,
+      `${process.env.NOMBA_BASE_URL}/v1/transactions/accounts/single`,
       {
-        params: {
-          idType: "orderReference",
-          id: orderReference,
-        },
+        params: { orderReference },
         headers: {
           Authorization: `Bearer ${accessToken}`,
           accountId: process.env.NOMBA_PARENT_ACCOUNT_ID,
@@ -21,7 +18,8 @@ const verifyTransaction = async (orderReference) => {
 
     console.log("VERIFY TRANSACTION RESPONSE:", JSON.stringify(response.data, null, 2));
 
-    const isSuccess = response.data?.data?.success === true;
+    const status = response.data?.data?.status || response.data?.status;
+    const isSuccess = status === "SUCCESS";
 
     return {
       success: isSuccess,
