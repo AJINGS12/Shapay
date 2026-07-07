@@ -31,6 +31,19 @@ const getPaymentReferenceCandidates = (payload) => {
   ].filter(Boolean);
 };
 
+const findMatchedPayment = async (payload) => {
+  const paymentReferences = getPaymentReferenceCandidates(payload);
+
+  for (const reference of paymentReferences) {
+    const existingPayment = await getPayment(reference);
+    if (existingPayment) {
+      return { matchedPayment: existingPayment, matchedReference: reference };
+    }
+  }
+
+  return { matchedPayment: null, matchedReference: null };
+};
+
 router.post("/nomba", async (req, res) => {
   try {
     console.log("Webhook hit");
@@ -65,10 +78,7 @@ router.post("/nomba", async (req, res) => {
       payload.customerEmail ||
       payload.customer_email ||
       null;
-    const amount =
-      transaction.amount ||
-      payload.amount ||
-      null;
+    const amount = transaction.amount || payload.amount || null;
 
     const hashingPayload = [
       payload.event_type,
@@ -87,9 +97,12 @@ router.post("/nomba", async (req, res) => {
       .update(hashingPayload)
       .digest("base64");
 
+    // NOTE: Signature check is disabled for now. Before final submission,
+    // log both values below, confirm they match on a real webhook call,
+    // then uncomment this block so unverified requests are rejected.
+    console.log("Signature check:", { generatedSignature, receivedSignature: signature });
     // if (generatedSignature !== signature) {
     //   console.log("Invalid webhook signature");
-    //
     //   return res.status(401).json({
     //     success: false,
     //     message: "Invalid signature",
@@ -100,30 +113,15 @@ router.post("/nomba", async (req, res) => {
     console.log(payload);
 
     switch (payload.event_type) {
-      case "payment_success":
+      case "payment_success": {
         console.log("Payment successful");
 
-        const paymentReferences =
-          getPaymentReferenceCandidates(payload);
-
-        let matchedPayment = null;
-        let matchedReference = null;
-
-        for (const reference of paymentReferences) {
-          const existingPayment =
-            await getPayment(reference);
-
-          if (existingPayment) {
-            matchedPayment = existingPayment;
-            matchedReference = reference;
-            break;
-          }
-        }
+        const { matchedPayment, matchedReference } = await findMatchedPayment(payload);
 
         if (!matchedPayment && !matchedReference) {
           console.log(
             "Payment record not found for refs:",
-            paymentReferences
+            getPaymentReferenceCandidates(payload)
           );
         } else {
           console.log("Matched payment reference", {
@@ -167,12 +165,22 @@ router.post("/nomba", async (req, res) => {
         }
 
         break;
+      }
 
-      case "payment_failed":
+      case "payment_failed": {
         console.log("Payment failed");
 
-        await updatePaymentStatus(
-          null,
+        const { matchedReference } = await findMatchedPayment(payload);
+
+        if (!matchedReference) {
+          console.log(
+            "Failed payment record not found for refs:",
+            getPaymentReferenceCandidates(payload)
+          );
+        }
+
+        const updatedPayment = await updatePaymentStatus(
+          matchedReference || null,
           "failed",
           {
             customerEmail,
@@ -180,13 +188,16 @@ router.post("/nomba", async (req, res) => {
           }
         );
 
+        console.log("Payment status updated to FAILED", {
+          matchedReference,
+          updatedPayment,
+        });
+
         break;
+      }
 
       default:
-        console.log(
-          "Unhandled event:",
-          payload.event_type
-        );
+        console.log("Unhandled event:", payload.event_type);
     }
 
     return res.status(200).json({

@@ -15,7 +15,7 @@ const buildCheckoutPayload = ({
     customerName,
     callbackUrl: process.env.APP_CALLBACK_URL,
   },
-  webhookUrl: `${process.env.BACKEND_BASE_URL}/webhook/nomba`,
+  webhookUrl: `${process.env.BACKEND_BASE_URL}/webhooks/nomba`,
 });
 
 const initializePayment = async ({
