@@ -1,5 +1,4 @@
 const axios = require("axios");
-
 const { getAccessToken } = require("./nombaAuthService");
 
 const buildCheckoutPayload = ({
@@ -8,12 +7,14 @@ const buildCheckoutPayload = ({
   customerEmail,
   merchantTxRef,
 }) => ({
-  amount: Number(amount),
-  currency: "NGN",
-  customerName,
-  customerEmail,
-  merchantTxRef,
-  callbackUrl: process.env.APP_CALLBACK_URL,
+  order: {
+    orderReference: merchantTxRef,
+    amount: Number(amount),
+    currency: "NGN",
+    customerEmail,
+    customerName,
+    callbackUrl: process.env.APP_CALLBACK_URL,
+  },
   webhookUrl: `${process.env.BACKEND_BASE_URL}/webhook/nomba`,
 });
 
@@ -33,20 +34,9 @@ const initializePayment = async ({
       merchantTxRef,
     });
 
-    console.log(
-      "CHECKOUT PAYLOAD:",
-      JSON.stringify(payload, null, 2)
-    );
-
-    console.log(
-      "NOMBA BASE URL:",
-      process.env.NOMBA_BASE_URL
-    );
-
-    console.log(
-      "ACCOUNT ID:",
-      process.env.NOMBA_PARENT_ACCOUNT_ID
-    );
+    console.log("CHECKOUT PAYLOAD:", JSON.stringify(payload, null, 2));
+    console.log("NOMBA BASE URL:", process.env.NOMBA_BASE_URL);
+    console.log("ACCOUNT ID:", process.env.NOMBA_PARENT_ACCOUNT_ID);
 
     const response = await axios.post(
       `${process.env.NOMBA_BASE_URL}/v1/checkout/order`,
@@ -60,36 +50,16 @@ const initializePayment = async ({
       }
     );
 
-    console.log(
-      "CHECKOUT RESPONSE:",
-      JSON.stringify(response.data, null, 2)
-    );
-
+    console.log("CHECKOUT RESPONSE:", JSON.stringify(response.data, null, 2));
     return response.data;
-
   } catch (error) {
-
     console.log("Checkout Initialization Error");
-
-    console.log(
-      "ERROR STATUS:",
-      error.response?.status
-    );
+    console.log("ERROR STATUS:", error.response?.status);
 
     if (error.response) {
-      console.log(
-        "ERROR DATA:",
-        JSON.stringify(
-          error.response.data,
-          null,
-          2
-        )
-      );
+      console.log("ERROR DATA:", JSON.stringify(error.response.data, null, 2));
     } else {
-      console.log(
-        "ERROR MESSAGE:",
-        error.message
-      );
+      console.log("ERROR MESSAGE:", error.message);
     }
 
     throw error;
