@@ -1,4 +1,4 @@
-this is it i think , process.on("uncaughtException", (err) => {
+process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT EXCEPTION:");
   console.error(err.message);
   console.error(err.stack);
