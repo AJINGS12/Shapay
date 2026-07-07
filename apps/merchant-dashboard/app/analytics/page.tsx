@@ -45,7 +45,7 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/analytics/overview"
+          `${process.env.NEXT_PUBLIC_API_URL}/analytics/overview`
         );
 
         setAnalytics(response.data.analytics);
