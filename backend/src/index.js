@@ -102,6 +102,27 @@ app.use("/payments", paymentRoutes);
 app.use("/subscriptions", subscriptionRoutes);
 
 
+// REPORTS
+const { getPayments } = require("./database/paymentStore");
+
+app.get("/reports/payments", async (req, res) => {
+  try {
+    const payments = await getPayments();
+
+    res.json({
+      success: true,
+      payments,
+    });
+  } catch (error) {
+    console.error("REPORTS ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch payments",
+    });
+  }
+});
+
+
 // ANALYTICS ROUTE
 // Try loading real analytics route
 try {
