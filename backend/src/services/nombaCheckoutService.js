@@ -6,6 +6,7 @@ const buildCheckoutPayload = ({
   customerName,
   customerEmail,
   merchantTxRef,
+  tokenizeCard = false,
 }) => ({
   order: {
     orderReference: merchantTxRef,
@@ -14,6 +15,7 @@ const buildCheckoutPayload = ({
     customerEmail,
     customerName,
     callbackUrl: process.env.APP_CALLBACK_URL,
+    ...(tokenizeCard && { tokenizeCard: true }),
   },
   webhookUrl: `${process.env.BACKEND_BASE_URL}/webhooks/nomba`,
 });
@@ -23,6 +25,7 @@ const initializePayment = async ({
   customerName,
   customerEmail,
   merchantTxRef,
+  tokenizeCard = false,
 }) => {
   try {
     const accessToken = await getAccessToken();
@@ -32,6 +35,7 @@ const initializePayment = async ({
       customerName,
       customerEmail,
       merchantTxRef,
+      tokenizeCard,
     });
 
     console.log("CHECKOUT PAYLOAD:", JSON.stringify(payload, null, 2));

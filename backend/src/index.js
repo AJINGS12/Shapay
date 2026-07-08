@@ -157,8 +157,11 @@ try {
 
 
 // PAYMENT CALLBACKS
+// PAYMENT CALLBACKS
 const { verifyTransaction } = require("./services/nombaVerifyService");
 const { updatePaymentStatus } = require("./database/paymentStore");
+const { getSavedCardToken } = require("./services/nombaTokenService");
+const { updateSubscription } = require("./database/subscriptionStore");
 
 const handlePaymentCallback = async (req, res) => {
   try {
@@ -175,6 +178,21 @@ const handlePaymentCallback = async (req, res) => {
 
     if (result.success) {
       await updatePaymentStatus(orderReference, "paid", {});
+
+      if (orderReference.startsWith("sub_")) {
+        const savedCard = await getSavedCardToken(orderReference);
+
+        await updateSubscription(orderReference, {
+          status: "active",
+          card_token: savedCard?.tokenKey || null,
+          activated_at: new Date(),
+        });
+
+        console.log("Subscription activated with token:", {
+          orderReference,
+          tokenCaptured: !!savedCard?.tokenKey,
+        });
+      }
     }
 
     return res.json({
@@ -195,6 +213,8 @@ const handlePaymentCallback = async (req, res) => {
     });
   }
 };
+
+
 
 app.get("/payment/callback", handlePaymentCallback);
 app.get("/payments/callback", handlePaymentCallback);
