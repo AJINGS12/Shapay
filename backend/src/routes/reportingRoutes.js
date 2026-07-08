@@ -8,11 +8,17 @@ const {
   getSubscriptions,
 } = require("../database/subscriptionStore");
 
+const {
+  requireMerchant,
+} = require("../middleware/merchantContext");
+
 const router = express.Router();
+
+router.use(requireMerchant);
 
 router.get("/payments", async (req, res) => {
   try {
-    const payments = await getPayments();
+    const payments = await getPayments(req.merchantId);
 
     const sortedPayments = payments.sort(
       (a, b) =>
@@ -38,7 +44,7 @@ router.get("/payments", async (req, res) => {
 router.get("/subscriptions", async (req, res) => {
   try {
     const subscriptions =
-      await getSubscriptions();
+      await getSubscriptions(req.merchantId);
 
     const sortedSubscriptions =
       subscriptions.sort(
@@ -66,9 +72,9 @@ router.get("/subscriptions", async (req, res) => {
 
 router.get("/activity", async (req, res) => {
   try {
-    const payments = await getPayments();
+    const payments = await getPayments(req.merchantId);
 
-    const subscriptions = await getSubscriptions();
+    const subscriptions = await getSubscriptions(req.merchantId);
 
     const paymentActivities =
       payments.map((payment) => ({

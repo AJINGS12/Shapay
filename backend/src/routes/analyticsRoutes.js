@@ -8,12 +8,18 @@ const { getSubscriptions } = require(
   "../database/subscriptionStore"
 );
 
+const {
+  requireMerchant,
+} = require("../middleware/merchantContext");
+
 const router = express.Router();
+
+router.use(requireMerchant);
 
 router.get("/overview", async (req, res) => {
   try {
-    const payments = await getPayments();
-    const subscriptions = await getSubscriptions();
+    const payments = await getPayments(req.merchantId);
+    const subscriptions = await getSubscriptions(req.merchantId);
 
     const paymentList = Array.isArray(payments)
       ? payments

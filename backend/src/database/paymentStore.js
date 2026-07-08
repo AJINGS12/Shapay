@@ -12,6 +12,7 @@ const savePayment = async (payment) => {
         amount: payment.amount,
         status: payment.status,
         order_reference: payment.orderReference || payment.merchantTxRef || null,
+        merchant_id: payment.merchantId || null,
       },
     ]);
 
@@ -42,16 +43,21 @@ const getPayment = async (orderReference) => {
     customerEmail: data.customer_email,
     orderReference: data.order_reference,
     createdAt: data.created_at,
+    merchantId: data.merchant_id,
   };
 };
 
-const getPayments = async () => {
-  const { data, error } = await supabase
+const getPayments = async (merchantId) => {
+  let query = supabase
     .from("payments")
     .select("*")
-    .order("created_at", {
-      ascending: false,
-    });
+    .order("created_at", { ascending: false });
+
+  if (merchantId) {
+    query = query.eq("merchant_id", merchantId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.log(error);
@@ -64,6 +70,7 @@ const getPayments = async () => {
     customerEmail: payment.customer_email,
     orderReference: payment.order_reference,
     createdAt: payment.created_at,
+    merchantId: payment.merchant_id,
   }));
 };
 

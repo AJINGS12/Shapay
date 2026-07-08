@@ -18,6 +18,12 @@ const {
   savePayment,
 } = require("../database/paymentStore");
 
+const {
+  requireMerchant,
+} = require("../middleware/merchantContext");
+
+router.use(requireMerchant);
+
 router.post(
   "/simulate/payment-failure",
   async (req, res) => {
@@ -35,6 +41,7 @@ router.post(
         customerEmail: demoEmail,
         amount: demoAmount,
         status: "failed",
+        merchantId: req.merchantId,
       });
 
       // Generate AI retry recommendation

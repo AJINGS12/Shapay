@@ -27,6 +27,9 @@ const normalizeSubscription = (
   orderReference:
     subscription.order_reference ||
     subscription.orderReference,
+  merchantId:
+    subscription.merchant_id ||
+    subscription.merchantId,
 });
 
 const saveSubscription = async (
@@ -53,6 +56,8 @@ const saveSubscription = async (
           subscription.nextBillingDate,
         order_reference:
           subscription.orderReference || null,
+        merchant_id:
+          subscription.merchantId || null,
       },
     ]);
 
@@ -97,13 +102,19 @@ const updateSubscription = async (
   return data ? normalizeSubscription(data) : null;
 };
 
-const getSubscriptions = async () => {
-  const { data, error } = await supabase
+const getSubscriptions = async (merchantId) => {
+  let query = supabase
     .from("subscriptions")
     .select("*")
     .order("created_at", {
       ascending: false,
     });
+
+  if (merchantId) {
+    query = query.eq("merchant_id", merchantId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.log(error);

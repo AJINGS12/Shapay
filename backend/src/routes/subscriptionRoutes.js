@@ -20,7 +20,13 @@ const {
   chargeTokenizedCard,
 } = require("../services/nombaTokenService");
 
+const {
+  requireMerchant,
+} = require("../middleware/merchantContext");
+
 const router = express.Router();
+
+router.use(requireMerchant);
 
 router.post("/create", async (req, res) => {
   try {
@@ -53,6 +59,7 @@ router.post("/create", async (req, res) => {
       nextBillingDate: new Date(
         Date.now() + 30 * 24 * 60 * 60 * 1000
       ),
+      merchantId: req.merchantId,
     };
 
     const payment = await initializePayment({
@@ -63,8 +70,6 @@ router.post("/create", async (req, res) => {
       tokenizeCard: true,
     });
 
-    // Save a matching payment record so the webhook/callback can find it
-    // by exact orderReference, instead of falling back to a random pending payment.
     await savePayment({
       orderReference: subscriptionId,
       merchantTxRef: subscriptionId,
@@ -72,6 +77,7 @@ router.post("/create", async (req, res) => {
       customerEmail,
       amount,
       status: "pending",
+      merchantId: req.merchantId,
     });
 
     subscription.checkoutLink =
@@ -99,7 +105,7 @@ router.post("/create", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const subscriptions = await getSubscriptions();
+    const subscriptions = await getSubscriptions(req.merchantId);
 
     res.status(200).json({
       success: true,

@@ -10,6 +10,12 @@ const {
   initializePayment,
 } = require("../services/nombaCheckoutService");
 
+const {
+  requireMerchant,
+} = require("../middleware/merchantContext");
+
+router.use(requireMerchant);
+
 const createCheckoutHandler = async (req, res) => {
   try {
     const {
@@ -30,13 +36,14 @@ const createCheckoutHandler = async (req, res) => {
       merchantTxRef,
     });
 
-    savePayment({
+    await savePayment({
       orderReference: merchantTxRef,
       merchantTxRef,
       amount,
       customerName,
       customerEmail: recipientEmail,
       status: "pending",
+      merchantId: req.merchantId,
       createdAt: new Date(),
     });
 
