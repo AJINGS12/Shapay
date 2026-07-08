@@ -2,7 +2,13 @@ const nodemailer = require("nodemailer");
 const recoveryEmailTemplate = require("../templates/recoveryEmailTemplate");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  family: 4, // force IPv4 to avoid Railway's IPv6 routing issue
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
