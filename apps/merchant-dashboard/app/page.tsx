@@ -121,18 +121,23 @@ const [sidebarOpen, setSidebarOpen] =
     router.push("/login");
   };
 
-  const simulateFailure =
-  async () => {
-    try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/simulate/payment-failure`
-      );
+ const [simulating, setSimulating] = useState(false);
 
-      window.location.reload();
-    } catch (error) {
-      console.log(error);
-    }
-  };
+const simulateFailure = async () => {
+  if (simulating) return;
+  
+  setSimulating(true);
+  
+  try {
+    await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/simulate/payment-failure`
+    );
+    window.location.reload();
+  } catch (error) {
+    console.log(error);
+    setSimulating(false);
+  }
+};
 
   const createCheckout = () => {
     router.push("/payment-test");
@@ -871,9 +876,10 @@ if (!analytics) {
     </div>
     <button
     onClick={simulateFailure}
+    disabled
     className="bg-red-500 hover:bg-red-600 transition text-white px-5 py-3 rounded-2xl font-semibold shadow-lg"
     >
-    Simulate Failed Payment
+      {simulating ? "Simulating..." : "Simulate Failed Payment"}
     </button>
     <div className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-semibold shadow-lg">
       AI Powered
