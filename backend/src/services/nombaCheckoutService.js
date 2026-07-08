@@ -7,18 +7,23 @@ const buildCheckoutPayload = ({
   customerEmail,
   merchantTxRef,
   tokenizeCard = false,
-}) => ({
-  order: {
-    orderReference: merchantTxRef,
-    amount: Number(amount),
-    currency: "NGN",
-    customerEmail,
-    customerName,
-    callbackUrl: process.env.APP_CALLBACK_URL,
-    ...(tokenizeCard && { tokenizeCard: true }),
-  },
-  webhookUrl: `${process.env.BACKEND_BASE_URL}/webhooks/nomba`,
-});
+}) => {
+  const customerId = `cus_${customerEmail.replace(/[^a-zA-Z0-9]/g, "_")}`;
+
+  return {
+    order: {
+      orderReference: merchantTxRef,
+      amount: Number(amount),
+      currency: "NGN",
+      customerEmail,
+      customerName,
+      customerId,
+      callbackUrl: process.env.APP_CALLBACK_URL,
+      ...(tokenizeCard ? { tokenizedCard: true } : {}),
+    },
+    webhookUrl: `${process.env.BACKEND_BASE_URL}/webhooks/nomba`,
+  };
+};
 
 const initializePayment = async ({
   amount,

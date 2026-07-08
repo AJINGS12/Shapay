@@ -20,6 +20,10 @@ const {
 
 const router = express.Router();
 
+// Simple in-memory idempotency guard (per official docs: reject duplicate requestId).
+// Note: resets on server restart — fine for hackathon demo, would use a DB table in production.
+const processedRequestIds = new Set();
+
 const getPaymentReferenceCandidates = (payload) => {
   const transaction = payload.data?.transaction || {};
   const data = payload.data || {};
@@ -52,214 +56,184 @@ const findMatchedPayment = async (payload) => {
   return { matchedPayment: null, matchedReference: null };
 };
 
-router.post("/nomba", async (req, res) => {
-  try {
-    console.log("Webhook hit");
-    console.log(JSON.stringify(req.body, null, 2));
+router.post(
+  "/nomba",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    try {
+      const rawBody = req.body; // Buffer, thanks to express.raw()
+      const signature = req.header("nomba-signature");
+      const secret = process.env.NOMBA_WEBHOOK_SECRET;
 
-    const payload = req.body;
+      if (!secret) {
+        console.log("Missing NOMBA_WEBHOOK_SECRET");
+        return res.status(500).json({
+          success: false,
+          message: "Webhook secret is not configured",
+        });
+      }
 
-    const signature =
-      req.headers["nomba-signature"] ||
-      req.headers["x-nomba-signature"] ||
-      req.headers["Nomba-Signature"];
-    const timestamp =
-      req.headers["nomba-timestamp"] ||
-      req.headers["x-nomba-timestamp"] ||
-      req.headers["Nomba-Timestamp"];
+      const expectedSignature = crypto
+        .createHmac("sha256", secret)
+        .update(rawBody)
+        .digest("hex");
 
-    const secret = process.env.NOMBA_WEBHOOK_SECRET;
-
-    if (!secret) {
-      console.log("Missing NOMBA_WEBHOOK_SECRET");
-      return res.status(500).json({
-        success: false,
-        message: "Webhook secret is not configured",
+      console.log("Signature check:", {
+        expectedSignature,
+        receivedSignature: signature,
       });
-    }
 
-    const transaction = payload.data?.transaction || {};
-    const merchant = payload.data?.merchant || {};
-    const customerEmail =
-      transaction.customerEmail ||
-      transaction.customer_email ||
-      payload.customerEmail ||
-      payload.customer_email ||
-      null;
-    const amount = transaction.amount || payload.amount || null;
+      if (signature !== expectedSignature) {
+        console.log("Invalid webhook signature");
+        return res.status(401).json({
+          success: false,
+          message: "Invalid signature",
+        });
+      }
 
-    const hashingPayload = [
-      payload.event_type,
-      payload.requestId,
-      merchant.userId,
-      merchant.walletId,
-      transaction.transactionId,
-      transaction.type,
-      transaction.time,
-      transaction.responseCode || "",
-      timestamp,
-    ].join(":");
+      const payload = JSON.parse(rawBody.toString());
 
-    const generatedSignature = crypto
-      .createHmac("sha256", secret)
-      .update(hashingPayload)
-      .digest("base64");
+      console.log("Webhook hit (signature verified)");
+      console.log(JSON.stringify(payload, null, 2));
 
-    // NOTE: Signature check is disabled for now. Before final submission,
-    // log both values below, confirm they match on a real webhook call,
-    // then uncomment this block so unverified requests are rejected.
-    console.log("Signature check:", { generatedSignature, receivedSignature: signature });
-    // if (generatedSignature !== signature) {
-    //   console.log("Invalid webhook signature");
-    //   return res.status(401).json({
-    //     success: false,
-    //     message: "Invalid signature",
-    //   });
-    // }
-
-    console.log("Verified Nomba webhook received");
-    console.log(payload);
-
-    switch (payload.event_type) {
-      case "payment_success": {
-        console.log("Payment successful");
-
-        const { matchedPayment, matchedReference } = await findMatchedPayment(payload);
-
-        if (!matchedPayment && !matchedReference) {
-          console.log(
-            "Payment record not found for refs:",
-            getPaymentReferenceCandidates(payload)
-          );
-        } else {
-          console.log("Matched payment reference", {
-            matchedReference,
-            matchedPayment,
-            customerEmail,
-            amount,
+      // Idempotency: ignore if we've already processed this requestId
+      if (payload.requestId) {
+        if (processedRequestIds.has(payload.requestId)) {
+          console.log("Duplicate webhook requestId ignored:", payload.requestId);
+          return res.status(200).json({
+            success: true,
+            message: "Already processed",
           });
         }
+        processedRequestIds.add(payload.requestId);
+      }
 
-        if (matchedPayment?.status === "paid") {
-          console.log("Duplicate webhook ignored");
+      const transaction = payload.data?.transaction || {};
+      const customerEmail =
+        transaction.customerEmail ||
+        transaction.customer_email ||
+        payload.customerEmail ||
+        payload.customer_email ||
+        null;
+      const amount = transaction.amount || payload.amount || null;
+
+      switch (payload.event_type) {
+        case "payment_success": {
+          console.log("Payment successful");
+
+          const { matchedPayment, matchedReference } = await findMatchedPayment(payload);
+
+          if (!matchedPayment && !matchedReference) {
+            console.log(
+              "Payment record not found for refs:",
+              getPaymentReferenceCandidates(payload)
+            );
+          }
+
+          if (matchedPayment?.status === "paid") {
+            console.log("Duplicate webhook ignored (already paid)");
+            break;
+          }
+
+          const updatedPayment = await updatePaymentStatus(
+            matchedReference || null,
+            "paid",
+            { customerEmail, amount }
+          );
+
+          console.log("Payment status updated to PAID", {
+            matchedReference,
+            updatedPayment,
+          });
+
+          if (
+            matchedReference &&
+            typeof matchedReference === "string" &&
+            matchedReference.startsWith("sub_")
+          ) {
+            await updateSubscription(matchedReference, {
+              status: "active",
+              activatedAt: new Date(),
+            });
+
+            console.log("Subscription activated");
+          }
+
           break;
         }
 
-        const updatedPayment = await updatePaymentStatus(
-          matchedReference || null,
-          "paid",
-          {
-            customerEmail,
-            amount,
-          }
-        );
+        case "payment_failed": {
+          console.log("Payment failed");
 
-        console.log("Payment status updated to PAID", {
-          matchedReference,
-          updatedPayment,
-        });
+          const { matchedReference, matchedPayment } = await findMatchedPayment(payload);
 
-        if (
-          matchedReference &&
-          typeof matchedReference === "string" &&
-          matchedReference.startsWith("sub_")
-        ) {
-          await updateSubscription(matchedReference, {
-            status: "active",
-            activatedAt: new Date(),
+          const updatedPayment = await updatePaymentStatus(
+            matchedReference || null,
+            "failed",
+            { customerEmail, amount }
+          );
+
+          console.log("Payment status updated to FAILED", {
+            matchedReference,
+            updatedPayment,
           });
 
-          console.log("Subscription activated");
+          try {
+            const recipientEmail =
+              customerEmail ||
+              matchedPayment?.customerEmail ||
+              matchedPayment?.customer_email;
+
+            if (recipientEmail) {
+              const recoveryMessage = await generateRecoveryMessage({
+                customerName:
+                  matchedPayment?.customerName ||
+                  matchedPayment?.customer_name ||
+                  "Customer",
+                amount: amount || matchedPayment?.amount || 0,
+                reason: transaction.responseCode || "Payment declined",
+                planName:
+                  matchedPayment?.planName ||
+                  matchedPayment?.plan_name ||
+                  "your subscription",
+                merchantName: "Shapay",
+              });
+
+              const emailResult = await sendRecoveryEmail({
+                to: recipientEmail,
+                message: recoveryMessage,
+                merchantName: "Shapay",
+                retryLink: `${process.env.FRONTEND_BASE_URL}/payments`,
+              });
+
+              console.log("Recovery email flow completed", {
+                recipientEmail,
+                emailSent: emailResult.success,
+              });
+            }
+          } catch (recoveryError) {
+            console.log("Recovery message/email error:", recoveryError.message);
+          }
+
+          break;
         }
 
-        break;
+        default:
+          console.log("Unhandled event:", payload.event_type);
       }
 
-      case "payment_failed": {
-        console.log("Payment failed");
-
-        const { matchedReference, matchedPayment } = await findMatchedPayment(payload);
-
-        if (!matchedReference) {
-          console.log(
-            "Failed payment record not found for refs:",
-            getPaymentReferenceCandidates(payload)
-          );
-        }
-
-        const updatedPayment = await updatePaymentStatus(
-          matchedReference || null,
-          "failed",
-          {
-            customerEmail,
-            amount,
-          }
-        );
-
-        console.log("Payment status updated to FAILED", {
-          matchedReference,
-          updatedPayment,
-        });
-
-        // Generate and send AI-powered recovery email
-        try {
-          const recipientEmail =
-            customerEmail ||
-            matchedPayment?.customerEmail ||
-            matchedPayment?.customer_email;
-
-          if (recipientEmail) {
-            const recoveryMessage = await generateRecoveryMessage({
-              customerName:
-                matchedPayment?.customerName ||
-                matchedPayment?.customer_name ||
-                "Customer",
-              amount: amount || matchedPayment?.amount || 0,
-              reason: transaction.responseCode || "Payment declined",
-              planName:
-                matchedPayment?.planName ||
-                matchedPayment?.plan_name ||
-                "your subscription",
-              merchantName: "Shapay",
-            });
-
-            const emailResult = await sendRecoveryEmail({
-            to: recipientEmail,
-            message: recoveryMessage,
-            merchantName: "Shapay",
-            retryLink: `${process.env.FRONTEND_BASE_URL}/payments`,
-             });
-
-            console.log("Recovery email flow completed", {
-              recipientEmail,
-              emailSent: emailResult.success,
-            });
-          } else {
-            console.log("No recipient email found for recovery message");
-          }
-        } catch (recoveryError) {
-          console.log("Recovery message/email error:", recoveryError.message);
-        }
-
-        break;
-      }
-
-      default:
-        console.log("Unhandled event:", payload.event_type);
+      return res.status(200).json({
+        success: true,
+        message: "Webhook verified",
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
     }
-
-    return res.status(200).json({
-      success: true,
-      message: "Webhook verified",
-    });
-  } catch (error) {
-    console.log(error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
   }
-});
+);
 
 module.exports = router;

@@ -43,7 +43,16 @@ app.use(
 app.options("*", cors());
 
 
-// BODY PARSER
+// WEBHOOKS
+// IMPORTANT: mounted BEFORE express.json(), because signature verification
+// needs the raw request body, not the parsed JSON object.
+const nombaWebhook = require("./webhooks/nombaWebhook");
+
+app.use("/webhooks", nombaWebhook);
+app.use("/webhook", nombaWebhook);
+
+
+// BODY PARSER (for all routes below this point)
 app.use(express.json());
 
 
@@ -51,13 +60,6 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Shapay API running");
 });
-
-
-// WEBHOOKS
-const nombaWebhook = require("./webhooks/nombaWebhook");
-
-app.use("/webhooks", nombaWebhook);
-app.use("/webhook", nombaWebhook);
 
 
 // Nomba Auth Test
@@ -148,10 +150,8 @@ try {
 
 
 // PAYMENT CALLBACKS
-// PAYMENT CALLBACKS
 const { verifyTransaction } = require("./services/nombaVerifyService");
 const { updatePaymentStatus } = require("./database/paymentStore");
-const { getSavedCardToken } = require("./services/nombaTokenService");
 const { updateSubscription } = require("./database/subscriptionStore");
 
 const handlePaymentCallback = async (req, res) => {
@@ -171,18 +171,12 @@ const handlePaymentCallback = async (req, res) => {
       await updatePaymentStatus(orderReference, "paid", {});
 
       if (orderReference.startsWith("sub_")) {
-        const savedCard = await getSavedCardToken(orderReference);
-
         await updateSubscription(orderReference, {
           status: "active",
-          card_token: savedCard?.tokenKey || null,
           activated_at: new Date(),
         });
 
-        console.log("Subscription activated with token:", {
-          orderReference,
-          tokenCaptured: !!savedCard?.tokenKey,
-        });
+        console.log("Subscription activated:", { orderReference });
       }
     }
 
@@ -204,7 +198,6 @@ const handlePaymentCallback = async (req, res) => {
     });
   }
 };
-
 
 
 app.get("/payment/callback", handlePaymentCallback);

@@ -1,25 +1,28 @@
 const axios = require("axios");
 const { getAccessToken } = require("./nombaAuthService");
 
-const getSavedCardToken = async (orderReference) => {
+// Per official Nomba docs: GET /tokenized-card/list returns saved tokens for a customer
+const getSavedCards = async (customerId) => {
   try {
     const accessToken = await getAccessToken();
 
     const response = await axios.get(
-      `${process.env.NOMBA_BASE_URL}/v1/checkout/user-card/${orderReference}`,
+      `${process.env.NOMBA_BASE_URL}/v1/tokenized-card/list`,
       {
+        params: { customerId },
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          accountId: process.env.NOMBA_PARENT_ACCOUNT_ID,
         },
       }
     );
 
-    console.log("SAVED CARD RESPONSE:", JSON.stringify(response.data, null, 2));
+    console.log("SAVED CARDS RESPONSE:", JSON.stringify(response.data, null, 2));
 
-    const cards = response.data?.data?.tokenizedCardData || [];
+    const cards = response.data?.data || [];
     return cards[0] || null;
   } catch (error) {
-    console.log("Get Saved Card Error");
+    console.log("Get Saved Cards Error");
     if (error.response) {
       console.log(JSON.stringify(error.response.data, null, 2));
     } else {
@@ -29,25 +32,23 @@ const getSavedCardToken = async (orderReference) => {
   }
 };
 
+// Per official Nomba docs: POST /tokenized-card/charge
 const chargeTokenizedCard = async ({
-  orderReference,
-  customerEmail,
+  cardId,
+  customerId,
   amount,
-  tokenKey,
+  merchantTxRef,
 }) => {
   const accessToken = await getAccessToken();
 
   const response = await axios.post(
-    `${process.env.NOMBA_BASE_URL}/v1/checkout/tokenized-card-payment`,
+    `${process.env.NOMBA_BASE_URL}/v1/tokenized-card/charge`,
     {
-      order: {
-        orderReference,
-        customerEmail,
-        callbackUrl: process.env.APP_CALLBACK_URL,
-        amount: Number(amount),
-        currency: "NGN",
-      },
-      tokenKey,
+      amount: Number(amount),
+      currency: "NGN",
+      cardId,
+      customerId,
+      merchantTxRef,
     },
     {
       headers: {
@@ -63,4 +64,4 @@ const chargeTokenizedCard = async ({
   return response.data;
 };
 
-module.exports = { getSavedCardToken, chargeTokenizedCard };
+module.exports = { getSavedCards, chargeTokenizedCard };

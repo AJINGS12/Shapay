@@ -12,6 +12,7 @@ const {
 } = require("../services/nombaCheckoutService");
 
 const {
+  getSavedCards,
   chargeTokenizedCard,
 } = require("../services/nombaTokenService");
 
@@ -128,24 +129,33 @@ router.post("/:subscriptionId/renew", async (req, res) => {
       });
     }
 
-    if (!subscription.card_token) {
+    const customerId = `cus_${subscription.customerEmail.replace(
+      /[^a-zA-Z0-9]/g,
+      "_"
+    )}`;
+
+    const savedCard = await getSavedCards(customerId);
+
+    if (!savedCard) {
       return res.status(200).json({
         success: false,
         message:
-          "No saved card token available yet. Card tokenization requires customer consent during checkout, which is not available in the sandbox environment for this hackathon submission. In production, once tokenization is enabled, renewal charges will process automatically using the customer's saved card.",
+          "No saved card found for this customer yet. Card tokenization requires customer consent during checkout, which may not be available in the sandbox environment for this hackathon submission. In production, once a card is tokenized, renewal charges will process automatically using the customer's saved card.",
       });
     }
 
     const renewalRef = `${subscriptionId}_renewal_${Date.now()}`;
 
     const chargeResult = await chargeTokenizedCard({
-      orderReference: renewalRef,
-      customerEmail: subscription.customerEmail,
+      cardId: savedCard.cardId || savedCard.id,
+      customerId,
       amount: subscription.amount,
-      tokenKey: subscription.card_token,
+      merchantTxRef: renewalRef,
     });
 
-    const success = chargeResult?.data?.status === true;
+    const success =
+      chargeResult?.status === true ||
+      chargeResult?.data?.status === true;
 
     if (success) {
       const nextBillingDate = new Date(
