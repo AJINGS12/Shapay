@@ -8,6 +8,10 @@ const {
 } = require("../database/subscriptionStore");
 
 const {
+  savePayment,
+} = require("../database/paymentStore");
+
+const {
   initializePayment,
 } = require("../services/nombaCheckoutService");
 
@@ -27,6 +31,13 @@ router.post("/create", async (req, res) => {
       amount,
       interval,
     } = req.body;
+
+    if (!customerEmail || !customerName || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: "customerEmail, customerName, and amount are required",
+      });
+    }
 
     const subscriptionId = `sub_${Date.now()}`;
 
@@ -50,6 +61,17 @@ router.post("/create", async (req, res) => {
       customerEmail,
       merchantTxRef: subscriptionId,
       tokenizeCard: true,
+    });
+
+    // Save a matching payment record so the webhook/callback can find it
+    // by exact orderReference, instead of falling back to a random pending payment.
+    await savePayment({
+      orderReference: subscriptionId,
+      merchantTxRef: subscriptionId,
+      customerName,
+      customerEmail,
+      amount,
+      status: "pending",
     });
 
     subscription.checkoutLink =
@@ -126,6 +148,15 @@ router.post("/:subscriptionId/renew", async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Subscription not found",
+      });
+    }
+
+    if (!subscription.customerEmail) {
+      console.log("Subscription missing customerEmail:", subscription);
+      return res.status(200).json({
+        success: false,
+        message:
+          "This subscription is missing customer email data and cannot be renewed.",
       });
     }
 
