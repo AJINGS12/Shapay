@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../lib/api";
 
 type Subscription = {
   subscriptionId: string;
@@ -27,9 +27,7 @@ export default function SubscriptionsPage() {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/subscriptions`
-      );
+      const response = await api.get("/subscriptions");
 
       setSubscriptions(response.data.subscriptions);
     } catch (error) {
@@ -43,16 +41,13 @@ export default function SubscriptionsPage() {
 
   const createSubscription = async () => {
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/subscriptions/create`,
-        {
-          customerName,
-          customerEmail: email,
-          planName,
-          amount: Number(amount),
-          interval,
-        }
-      );
+      const response = await api.post("/subscriptions/create", {
+        customerName,
+        customerEmail: email,
+        planName,
+        amount: Number(amount),
+        interval,
+      });
 
       window.open(response.data.checkoutLink, "_blank");
 
@@ -67,8 +62,8 @@ export default function SubscriptionsPage() {
     setRenewMessage("");
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/subscriptions/${subscriptionId}/renew`
+      const response = await api.post(
+        `/subscriptions/${subscriptionId}/renew`
       );
 
       setRenewMessage(response.data.message);

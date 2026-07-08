@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../lib/api";
 
 type Payment = {
   customerName: string;
@@ -19,8 +19,8 @@ export default function PaymentsPage() {
 
   const createCheckout = async () => {
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/payments/create-checkout`,
+      const response = await api.post(
+        "/payments/create-checkout",
         {
           amount: Number(amount),
           customerName,
@@ -37,9 +37,7 @@ export default function PaymentsPage() {
   useEffect(() => {
     const fetchPayments = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/reports/payments`
-        );
+        const response = await api.get("/reports/payments");
 
         setPayments(response.data.payments);
       } catch (error) {

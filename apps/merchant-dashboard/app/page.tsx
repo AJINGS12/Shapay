@@ -1,18 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../lib/api";
 import Link from "next/link";
 
 import { signOut } from "firebase/auth";
-
-
 import { useRouter } from "next/navigation";
-
-import {
-  onAuthStateChanged,
-} from "firebase/auth";
-
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
 
 import {
@@ -77,13 +71,12 @@ export default function Home() {
   const [analytics, setAnalytics] =
     useState<Analytics | null>(null);
 
-  const [aiInsights, setAiInsights] =
-  useState<
-    {
-      title: string;
-      description: string;
-    }[]
-  >([]);
+  type Insight = {
+  title: string;
+  description: string;
+};
+
+const [aiInsights, setAiInsights] = useState<Insight[]>([]);
 
   const [payments, setPayments] =
     useState<Payment[]>([]);
@@ -91,16 +84,14 @@ export default function Home() {
   const [activities, setActivities] =
   useState<ActivityItem[]>([]);
 
-  const [
-  retryRecommendations,
-  setRetryRecommendations,
-] = useState<
-  {
-    customer: string;
-    retryDelay: string;
-    reasoning: string;
-  }[]
->(mockRetryRecommendations);
+type RetryRecommendation = {
+  customer: string;
+  retryDelay: string;
+  reasoning: string;
+};
+
+const [retryRecommendations, setRetryRecommendations] =
+  useState<RetryRecommendation[]>(mockRetryRecommendations);
 
 const [
   recoveryMetrics,
@@ -109,8 +100,6 @@ const [
 
 const [sidebarOpen, setSidebarOpen] =
   useState(false);
-
-
 
   const router = useRouter();
 
@@ -121,23 +110,21 @@ const [sidebarOpen, setSidebarOpen] =
     router.push("/login");
   };
 
- const [simulating, setSimulating] = useState(false);
+  const [simulating, setSimulating] = useState(false);
 
-const simulateFailure = async () => {
-  if (simulating) return;
-  
-  setSimulating(true);
-  
-  try {
-    await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/simulate/payment-failure`
-    );
-    window.location.reload();
-  } catch (error) {
-    console.log(error);
-    setSimulating(false);
-  }
-};
+  const simulateFailure = async () => {
+    if (simulating) return;
+
+    setSimulating(true);
+
+    try {
+      await api.post("/simulate/payment-failure");
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+      setSimulating(false);
+    }
+  };
 
   const createCheckout = () => {
     router.push("/payment-test");
@@ -160,9 +147,7 @@ const simulateFailure = async () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/analytics/overview`
-        );
+        const response = await api.get("/analytics/overview");
 
         setAnalytics(response.data.analytics);
 
@@ -229,27 +214,21 @@ if (
 setAiInsights(insights);
 
         const paymentsResponse =
-          await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/reports/payments`
-          );
+          await api.get("/reports/payments");
 
         setPayments(
           paymentsResponse.data.payments
         );
 
         const activitiesResponse =
-          await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/reports/activity`
-          );
+          await api.get("/reports/activity");
 
 setActivities(
   activitiesResponse.data.activities
 );
 
 const retryResponse =
-  await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/ai/retry-recommendations`
-  );
+  await api.get("/ai/retry-recommendations");
 
 setRetryRecommendations(
   retryResponse.data
@@ -257,9 +236,7 @@ setRetryRecommendations(
 );
 
 const recoveryResponse =
-  await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/analytics/recovery`
-  );
+  await api.get("/analytics/recovery");
 
 setRecoveryMetrics(
   recoveryResponse.data.metrics
@@ -351,9 +328,6 @@ if (!analytics) {
           <LayoutDashboard size={20} />
            <span>Overview</span>
           </Link>
-            
-            
-          
 
           <Link
              href="/payments"
@@ -633,8 +607,8 @@ if (!analytics) {
     </AreaChart>
   </ResponsiveContainer>
 </div>
-            
-            
+
+
             </div>
 
             {/* PAYMENTS TABLE */}
@@ -876,8 +850,8 @@ if (!analytics) {
     </div>
     <button
     onClick={simulateFailure}
-    disabled
-    className="bg-red-500 hover:bg-red-600 transition text-white px-5 py-3 rounded-2xl font-semibold shadow-lg"
+    disabled={simulating}
+    className="bg-red-500 hover:bg-red-600 transition text-white px-5 py-3 rounded-2xl font-semibold shadow-lg disabled:opacity-50"
     >
       {simulating ? "Simulating..." : "Simulate Failed Payment"}
     </button>
