@@ -10,6 +10,14 @@ const {
   updateSubscription,
 } = require("../database/subscriptionStore");
 
+const {
+  generateRecoveryMessage,
+} = require("../services/claudeService");
+
+const {
+  sendRecoveryEmail,
+} = require("../services/emailService");
+
 const router = express.Router();
 
 const getPaymentReferenceCandidates = (payload) => {
@@ -170,7 +178,7 @@ router.post("/nomba", async (req, res) => {
       case "payment_failed": {
         console.log("Payment failed");
 
-        const { matchedReference } = await findMatchedPayment(payload);
+        const { matchedReference, matchedPayment } = await findMatchedPayment(payload);
 
         if (!matchedReference) {
           console.log(
@@ -192,6 +200,46 @@ router.post("/nomba", async (req, res) => {
           matchedReference,
           updatedPayment,
         });
+
+        // Generate and send AI-powered recovery email
+        try {
+          const recipientEmail =
+            customerEmail ||
+            matchedPayment?.customerEmail ||
+            matchedPayment?.customer_email;
+
+          if (recipientEmail) {
+            const recoveryMessage = await generateRecoveryMessage({
+              customerName:
+                matchedPayment?.customerName ||
+                matchedPayment?.customer_name ||
+                "Customer",
+              amount: amount || matchedPayment?.amount || 0,
+              reason: transaction.responseCode || "Payment declined",
+              planName:
+                matchedPayment?.planName ||
+                matchedPayment?.plan_name ||
+                "your subscription",
+              merchantName: "Shapay",
+            });
+
+            const emailResult = await sendRecoveryEmail({
+            to: recipientEmail,
+            message: recoveryMessage,
+            merchantName: "Shapay",
+            retryLink: `${process.env.FRONTEND_BASE_URL}/payments`,
+             });
+
+            console.log("Recovery email flow completed", {
+              recipientEmail,
+              emailSent: emailResult.success,
+            });
+          } else {
+            console.log("No recipient email found for recovery message");
+          }
+        } catch (recoveryError) {
+          console.log("Recovery message/email error:", recoveryError.message);
+        }
 
         break;
       }

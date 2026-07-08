@@ -97,30 +97,21 @@ app.get("/test-token", async (req, res) => {
 
 const paymentRoutes = require("./routes/paymentRoutes");
 const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const emailPreviewRoute = require("./routes/emailPreviewRoute");
+const reportingRoutes = require("./routes/reportingRoutes");
+const aiRoutes = require("./routes/aiRoutes");
+const recoveryAnalyticsRoutes = require("./routes/recoveryAnalyticsRoutes");
+const simulationRoutes = require("./routes/simulationRoutes");
+
 
 app.use("/payments", paymentRoutes);
 app.use("/subscriptions", subscriptionRoutes);
+app.use("/email", emailPreviewRoute);
+app.use("/reports", reportingRoutes);
+app.use("/", aiRoutes);
+app.use("/", recoveryAnalyticsRoutes);
+app.use("/", simulationRoutes);
 
-
-// REPORTS
-const { getPayments } = require("./database/paymentStore");
-
-app.get("/reports/payments", async (req, res) => {
-  try {
-    const payments = await getPayments();
-
-    res.json({
-      success: true,
-      payments,
-    });
-  } catch (error) {
-    console.error("REPORTS ERROR:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch payments",
-    });
-  }
-});
 
 
 // ANALYTICS ROUTE
