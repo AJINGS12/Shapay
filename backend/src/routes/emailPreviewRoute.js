@@ -29,7 +29,7 @@ router.get(
           merchantName:
             "Shapay",
           logoUrl:
-            "http://localhost:3000/assets/logos/shapay-logo.png",
+           `${process.env.FRONTEND_BASE_URL}/shapay-logo.png`,
           message,
           retryLink:
             "https://shapay.ai/retry",

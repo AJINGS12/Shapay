@@ -27,13 +27,20 @@ Plan Name: ${planName}
 
 Write a concise, professional, empathetic payment recovery message.
 
+Format as plain prose paragraphs only. Do NOT use:
+- Markdown formatting of any kind
+- Headers (no # symbols)
+- Bullet points or dashes (no - symbols)
+- Bold/italic asterisks
+- Any special formatting characters
+
 Do NOT include:
 - subject line
 - placeholders
 - fake support emails
 - fake company names
 
-Keep it clean and human.
+Keep it clean, human, and written as simple paragraphs separated by blank lines.
 `;
 
     const response =

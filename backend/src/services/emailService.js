@@ -12,7 +12,7 @@ const sendRecoveryEmail = async ({
   try {
     const html = recoveryEmailTemplate({
       merchantName,
-      logoUrl: `${process.env.FRONTEND_BASE_URL}/assets/logos/shapay-logo.png`,
+      logoUrl: `${process.env.FRONTEND_BASE_URL}/shapay-logo.png`,
       message,
       retryLink: retryLink || `${process.env.FRONTEND_BASE_URL}/payments`,
     });
