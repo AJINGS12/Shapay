@@ -57,27 +57,6 @@ type Insight = {
   description: string;
 };
 
-type RetryRecommendation = {
-  customer: string;
-  retryDelay: string;
-  reasoning: string;
-};
-
-const mockRetryRecommendations: RetryRecommendation[] = [
-  {
-    customer: "Ismail",
-    retryDelay: "24 Hours",
-    reasoning:
-      "Customers often top up accounts within 24 hours after insufficient funds.",
-  },
-  {
-    customer: "Sarah",
-    retryDelay: "48 Hours",
-    reasoning:
-      "Retrying after salary cycles improves recovery success rates.",
-  },
-];
-
 export default function Home() {
   const [analytics, setAnalytics] =
     useState<Analytics | null>(null);
@@ -89,11 +68,6 @@ export default function Home() {
 
   const [activities, setActivities] =
     useState<ActivityItem[]>([]);
-
-  const [retryRecommendations, setRetryRecommendations] =
-    useState<RetryRecommendation[]>(mockRetryRecommendations);
-
-  const [recoveryMetrics, setRecoveryMetrics] = useState<any>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -189,12 +163,6 @@ export default function Home() {
 
           const activitiesResponse = await api.get("/reports/activity");
           setActivities(activitiesResponse.data.activities);
-
-          const retryResponse = await api.get("/ai/retry-recommendations");
-          setRetryRecommendations(retryResponse.data.recommendations);
-
-          const recoveryResponse = await api.get("/analytics/recovery");
-          setRecoveryMetrics(recoveryResponse.data.metrics);
         } catch (error) {
           console.log(error);
         }
@@ -360,6 +328,14 @@ export default function Home() {
             className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg"
           >
             Generate Payment Checkout
+          </button>
+
+          <button
+            onClick={simulateFailure}
+            disabled={simulating}
+            className="bg-red-500 hover:bg-red-600 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg disabled:opacity-50"
+          >
+            {simulating ? "Simulating..." : "Simulate Failed Payment"}
           </button>
         </div>
 
@@ -656,108 +632,6 @@ export default function Home() {
 
                   <p className="text-sm text-gray-500 mt-1">
                     {new Date(activity.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* RECOVERY ANALYTICS */}
-
-        <div className="mt-10">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900">
-                Recovery Analytics
-              </h3>
-
-              <p className="text-gray-500 mt-2">
-                AI-powered subscription recovery performance.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            {recoveryMetrics &&
-              [
-                {
-                  title: "Recovered Revenue",
-                  value: `₦${recoveryMetrics.recoveredRevenue.toLocaleString()}`,
-                },
-                {
-                  title: "Recovery Success Rate",
-                  value: `${recoveryMetrics.recoveryRate}%`,
-                },
-                {
-                  title: "Recovered Subscriptions",
-                  value: recoveryMetrics.recoveredSubscriptions,
-                },
-                {
-                  title: "AI Retry Success",
-                  value: `+${recoveryMetrics.aiRetrySuccess}%`,
-                },
-              ].map((metric, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-3xl p-7 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                >
-                  <p className="text-gray-500 text-sm">{metric.title}</p>
-
-                  <h4 className="text-4xl font-bold text-gray-900 mt-4">
-                    {metric.value}
-                  </h4>
-                </div>
-              ))}
-          </div>
-        </div>
-
-        {/* AI RETRY INTELLIGENCE */}
-
-        <div className="mt-10">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900">
-                AI Recovery Intelligence
-              </h3>
-              <p className="text-gray-500 mt-2">
-                Intelligent retry recommendations powered by Shapay AI.
-              </p>
-            </div>
-            <button
-              onClick={simulateFailure}
-              disabled={simulating}
-              className="bg-red-500 hover:bg-red-600 transition text-white px-5 py-3 rounded-2xl font-semibold shadow-lg disabled:opacity-50"
-            >
-              {simulating ? "Simulating..." : "Simulate Failed Payment"}
-            </button>
-            <div className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-semibold shadow-lg">
-              AI Powered
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            {retryRecommendations.map((recommendation, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-3xl p-7 border border-gray-100 shadow-sm"
-              >
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <p className="text-sm text-gray-500">Customer</p>
-                    <h4 className="text-xl font-bold text-gray-900 mt-1">
-                      {recommendation.customer}
-                    </h4>
-                  </div>
-                  <div className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold">
-                    Retry in {recommendation.retryDelay}
-                  </div>
-                </div>
-                <div className="bg-gray-50 rounded-2xl p-5">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    AI Reasoning
-                  </p>
-                  <p className="text-gray-600 leading-7">
-                    {recommendation.reasoning}
                   </p>
                 </div>
               </div>
