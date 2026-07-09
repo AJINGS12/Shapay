@@ -11,6 +11,7 @@ type Subscription = {
   interval: string;
   status: string;
   createdAt: string;
+  nextBillingDate?: string;
   cardToken?: string | null;
 };
 
@@ -22,8 +23,8 @@ export default function SubscriptionsPage() {
   const [amount, setAmount] = useState("");
   const [planName, setPlanName] = useState("");
   const [interval, setInterval] = useState("monthly");
-  const [renewingId, setRenewingId] = useState<string | null>(null);
-  const [renewMessage, setRenewMessage] = useState("");
+  const [actioningId, setActioningId] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState("");
 
   const fetchSubscriptions = async () => {
     try {
@@ -58,22 +59,90 @@ export default function SubscriptionsPage() {
   };
 
   const renewSubscription = async (subscriptionId: string) => {
-    setRenewingId(subscriptionId);
-    setRenewMessage("");
+    setActioningId(subscriptionId);
+    setActionMessage("");
 
     try {
       const response = await api.post(
         `/subscriptions/${subscriptionId}/renew`
       );
 
-      setRenewMessage(response.data.message);
+      setActionMessage(response.data.message);
       fetchSubscriptions();
     } catch (error) {
       console.log(error);
-      setRenewMessage("Renewal request failed");
+      setActionMessage("Renewal request failed");
     } finally {
-      setRenewingId(null);
+      setActioningId(null);
     }
+  };
+
+  const cancelSubscription = async (subscriptionId: string) => {
+    if (!confirm("Are you sure you want to cancel this subscription?")) {
+      return;
+    }
+
+    setActioningId(subscriptionId);
+    setActionMessage("");
+
+    try {
+      const response = await api.post(
+        `/subscriptions/${subscriptionId}/cancel`
+      );
+
+      setActionMessage(response.data.message);
+      fetchSubscriptions();
+    } catch (error) {
+      console.log(error);
+      setActionMessage("Cancellation failed");
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const pauseSubscription = async (subscriptionId: string) => {
+    setActioningId(subscriptionId);
+    setActionMessage("");
+
+    try {
+      const response = await api.post(
+        `/subscriptions/${subscriptionId}/pause`
+      );
+
+      setActionMessage(response.data.message);
+      fetchSubscriptions();
+    } catch (error) {
+      console.log(error);
+      setActionMessage("Pause failed");
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const resumeSubscription = async (subscriptionId: string) => {
+    setActioningId(subscriptionId);
+    setActionMessage("");
+
+    try {
+      const response = await api.post(
+        `/subscriptions/${subscriptionId}/resume`
+      );
+
+      setActionMessage(response.data.message);
+      fetchSubscriptions();
+    } catch (error) {
+      console.log(error);
+      setActionMessage("Resume failed");
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const statusStyles: Record<string, string> = {
+    active: "bg-green-100 text-green-700",
+    pending: "bg-yellow-100 text-yellow-700",
+    paused: "bg-gray-200 text-gray-700",
+    cancelled: "bg-red-100 text-red-600",
   };
 
   return (
@@ -150,9 +219,9 @@ export default function SubscriptionsPage() {
         </button>
       </div>
 
-      {renewMessage && (
+      {actionMessage && (
         <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-2xl p-5 mb-8">
-          {renewMessage}
+          {actionMessage}
         </div>
       )}
 
@@ -168,8 +237,8 @@ export default function SubscriptionsPage() {
                 <th className="pb-4 text-gray-500">Amount</th>
                 <th className="pb-4 text-gray-500">Interval</th>
                 <th className="pb-4 text-gray-500">Status</th>
-                <th className="pb-4 text-gray-500">Created</th>
-                <th className="pb-4 text-gray-500">Action</th>
+                <th className="pb-4 text-gray-500">Next Billing</th>
+                <th className="pb-4 text-gray-500">Actions</th>
               </tr>
             </thead>
 
@@ -194,10 +263,9 @@ export default function SubscriptionsPage() {
 
                   <td className="py-5">
                     <span
-                      className={`px-4 py-2 rounded-full text-sm font-medium ${
-                        subscription.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
+                      className={`px-4 py-2 rounded-full text-sm font-medium capitalize ${
+                        statusStyles[subscription.status] ||
+                        "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {subscription.status}
@@ -205,19 +273,65 @@ export default function SubscriptionsPage() {
                   </td>
 
                   <td className="py-5 text-gray-500">
-                    {new Date(subscription.createdAt).toLocaleDateString()}
+                    {subscription.nextBillingDate
+                      ? new Date(
+                          subscription.nextBillingDate
+                        ).toLocaleDateString()
+                      : "—"}
                   </td>
 
                   <td className="py-5">
-                    <button
-                      onClick={() => renewSubscription(subscription.subscriptionId)}
-                      disabled={renewingId === subscription.subscriptionId}
-                      className="bg-gray-900 hover:bg-gray-700 transition text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
-                    >
-                      {renewingId === subscription.subscriptionId
-                        ? "Renewing..."
-                        : "Renew Now"}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      {subscription.status !== "cancelled" && (
+                        <button
+                          onClick={() =>
+                            renewSubscription(subscription.subscriptionId)
+                          }
+                          disabled={actioningId === subscription.subscriptionId}
+                          className="bg-gray-900 hover:bg-gray-700 transition text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
+                        >
+                          {actioningId === subscription.subscriptionId
+                            ? "..."
+                            : "Renew"}
+                        </button>
+                      )}
+
+                      {subscription.status === "active" && (
+                        <button
+                          onClick={() =>
+                            pauseSubscription(subscription.subscriptionId)
+                          }
+                          disabled={actioningId === subscription.subscriptionId}
+                          className="bg-yellow-500 hover:bg-yellow-600 transition text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
+                        >
+                          Pause
+                        </button>
+                      )}
+
+                      {subscription.status === "paused" && (
+                        <button
+                          onClick={() =>
+                            resumeSubscription(subscription.subscriptionId)
+                          }
+                          disabled={actioningId === subscription.subscriptionId}
+                          className="bg-green-600 hover:bg-green-700 transition text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
+                        >
+                          Resume
+                        </button>
+                      )}
+
+                      {subscription.status !== "cancelled" && (
+                        <button
+                          onClick={() =>
+                            cancelSubscription(subscription.subscriptionId)
+                          }
+                          disabled={actioningId === subscription.subscriptionId}
+                          className="bg-red-500 hover:bg-red-600 transition text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
