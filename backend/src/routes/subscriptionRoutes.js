@@ -16,7 +16,6 @@ const {
 } = require("../services/nombaCheckoutService");
 
 const {
-  getSavedCards,
   chargeTokenizedCard,
 } = require("../services/nombaTokenService");
 
@@ -157,12 +156,18 @@ router.post("/:subscriptionId/renew", async (req, res) => {
       });
     }
 
-    if (!subscription.customerEmail) {
-      console.log("Subscription missing customerEmail:", subscription);
+    if (subscription.status === "cancelled") {
+      return res.status(200).json({
+        success: false,
+        message: "This subscription is cancelled and cannot be renewed.",
+      });
+    }
+
+    if (!subscription.card_token) {
       return res.status(200).json({
         success: false,
         message:
-          "This subscription is missing customer email data and cannot be renewed.",
+          "No saved card token available yet. Card tokenization requires an additional customer OTP consent step during checkout, which this sandbox environment does not expose in its hosted checkout UI. In production, once a customer consents to save their card, renewal charges will process automatically via Nomba's tokenized card payment API.",
       });
     }
 
@@ -171,28 +176,17 @@ router.post("/:subscriptionId/renew", async (req, res) => {
       "_"
     )}`;
 
-    const savedCard = await getSavedCards(customerId);
-
-    if (!savedCard) {
-      return res.status(200).json({
-        success: false,
-        message:
-          "No saved card found for this customer yet. Card tokenization requires customer consent during checkout, which may not be available in the sandbox environment for this hackathon submission. In production, once a card is tokenized, renewal charges will process automatically using the customer's saved card.",
-      });
-    }
-
     const renewalRef = `${subscriptionId}_renewal_${Date.now()}`;
 
     const chargeResult = await chargeTokenizedCard({
-      cardId: savedCard.cardId || savedCard.id,
+      orderReference: renewalRef,
       customerId,
+      customerEmail: subscription.customerEmail,
       amount: subscription.amount,
-      merchantTxRef: renewalRef,
+      tokenKey: subscription.card_token,
     });
 
-    const success =
-      chargeResult?.status === true ||
-      chargeResult?.data?.status === true;
+    const success = chargeResult?.data?.status === true;
 
     if (success) {
       const nextBillingDate = new Date(
@@ -202,6 +196,7 @@ router.post("/:subscriptionId/renew", async (req, res) => {
       await updateSubscription(subscriptionId, {
         next_billing_date: nextBillingDate,
         last_renewed_at: new Date(),
+        status: "active",
       });
     }
 
@@ -217,6 +212,121 @@ router.post("/:subscriptionId/renew", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Renewal failed",
+    });
+  }
+});
+
+router.post("/:subscriptionId/cancel", async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+
+    const subscription = await getSubscription(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: "Subscription not found",
+      });
+    }
+
+    const updated = await updateSubscription(subscriptionId, {
+      status: "cancelled",
+      cancelled_at: new Date(),
+    });
+
+    res.json({
+      success: true,
+      message: "Subscription cancelled",
+      subscription: updated,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel subscription",
+    });
+  }
+});
+
+router.post("/:subscriptionId/pause", async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+
+    const subscription = await getSubscription(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: "Subscription not found",
+      });
+    }
+
+    if (subscription.status === "cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot pause a cancelled subscription",
+      });
+    }
+
+    const updated = await updateSubscription(subscriptionId, {
+      status: "paused",
+      paused_at: new Date(),
+    });
+
+    res.json({
+      success: true,
+      message: "Subscription paused",
+      subscription: updated,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to pause subscription",
+    });
+  }
+});
+
+router.post("/:subscriptionId/resume", async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+
+    const subscription = await getSubscription(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: "Subscription not found",
+      });
+    }
+
+    if (subscription.status !== "paused") {
+      return res.status(400).json({
+        success: false,
+        message: "Only paused subscriptions can be resumed",
+      });
+    }
+
+    const nextBillingDate = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000
+    );
+
+    const updated = await updateSubscription(subscriptionId, {
+      status: "active",
+      next_billing_date: nextBillingDate,
+      resumed_at: new Date(),
+    });
+
+    res.json({
+      success: true,
+      message: "Subscription resumed",
+      subscription: updated,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to resume subscription",
     });
   }
 });

@@ -1,54 +1,27 @@
 const axios = require("axios");
 const { getAccessToken } = require("./nombaAuthService");
 
-// Per official Nomba docs: GET /tokenized-card/list returns saved tokens for a customer
-const getSavedCards = async (customerId) => {
-  try {
-    const accessToken = await getAccessToken();
-
-    const response = await axios.get(
-      `${process.env.NOMBA_BASE_URL}/v1/tokenized-card/list`,
-      {
-        params: { customerId },
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          accountId: process.env.NOMBA_PARENT_ACCOUNT_ID,
-        },
-      }
-    );
-
-    console.log("SAVED CARDS RESPONSE:", JSON.stringify(response.data, null, 2));
-
-    const cards = response.data?.data || [];
-    return cards[0] || null;
-  } catch (error) {
-    console.log("Get Saved Cards Error");
-    if (error.response) {
-      console.log(JSON.stringify(error.response.data, null, 2));
-    } else {
-      console.log(error.message);
-    }
-    return null;
-  }
-};
-
-// Per official Nomba docs: POST /tokenized-card/charge
 const chargeTokenizedCard = async ({
-  cardId,
+  orderReference,
   customerId,
+  customerEmail,
   amount,
-  merchantTxRef,
+  tokenKey,
 }) => {
   const accessToken = await getAccessToken();
 
   const response = await axios.post(
-    `${process.env.NOMBA_BASE_URL}/v1/tokenized-card/charge`,
+    `${process.env.NOMBA_BASE_URL}/v1/checkout/tokenized-card-payment`,
     {
-      amount: Number(amount),
-      currency: "NGN",
-      cardId,
-      customerId,
-      merchantTxRef,
+      order: {
+        orderReference,
+        customerId,
+        callbackUrl: process.env.APP_CALLBACK_URL,
+        customerEmail,
+        amount: String(amount),
+        currency: "NGN",
+      },
+      tokenKey,
     },
     {
       headers: {
@@ -64,4 +37,4 @@ const chargeTokenizedCard = async ({
   return response.data;
 };
 
-module.exports = { getSavedCards, chargeTokenizedCard };
+module.exports = { chargeTokenizedCard };

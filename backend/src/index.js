@@ -81,29 +81,35 @@ const handlePaymentCallback = async (req, res) => {
     const { orderReference } = req.query;
 
     if (!orderReference) {
-      console.log("CALLBACK: missing orderReference");
       return res.status(400).json({
         success: false,
         message: "Missing orderReference",
       });
     }
 
-    console.log("CALLBACK: about to verify", orderReference);
-
     const result = await verifyTransaction(orderReference);
-
-    console.log("CALLBACK: verify result", result);
 
     if (result.success) {
       await updatePaymentStatus(orderReference, "paid", {});
 
       if (orderReference.startsWith("sub_")) {
+        // Opportunistically capture a card token if Nomba's response includes one
+        // (only present if the customer completed the card-save OTP consent step).
+        const possibleToken =
+          result.raw?.data?.tokenKey ||
+          result.raw?.data?.cardToken ||
+          null;
+
         await updateSubscription(orderReference, {
           status: "active",
           activated_at: new Date(),
+          ...(possibleToken ? { card_token: possibleToken } : {}),
         });
 
-        console.log("Subscription activated:", { orderReference });
+        console.log("Subscription activated:", {
+          orderReference,
+          tokenCaptured: !!possibleToken,
+        });
       }
     }
 
@@ -125,6 +131,7 @@ const handlePaymentCallback = async (req, res) => {
     });
   }
 };
+  
 
 app.get("/payment/callback", handlePaymentCallback);
 app.get("/payments/callback", handlePaymentCallback);
