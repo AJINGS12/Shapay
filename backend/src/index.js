@@ -81,10 +81,9 @@ const handlePaymentCallback = async (req, res) => {
     const { orderReference } = req.query;
 
     if (!orderReference) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing orderReference",
-      });
+      return res.redirect(
+        `${process.env.FRONTEND_BASE_URL}/?payment=error`
+      );
     }
 
     const result = await verifyTransaction(orderReference);
@@ -93,8 +92,6 @@ const handlePaymentCallback = async (req, res) => {
       await updatePaymentStatus(orderReference, "paid", {});
 
       if (orderReference.startsWith("sub_")) {
-        // Opportunistically capture a card token if Nomba's response includes one
-        // (only present if the customer completed the card-save OTP consent step).
         const possibleToken =
           result.raw?.data?.tokenKey ||
           result.raw?.data?.cardToken ||
@@ -111,27 +108,26 @@ const handlePaymentCallback = async (req, res) => {
           tokenCaptured: !!possibleToken,
         });
       }
+
+      return res.redirect(
+        `${process.env.FRONTEND_BASE_URL}/?payment=success`
+      );
     }
 
-    return res.json({
-      success: result.success,
-      message: result.success
-        ? "Payment completed"
-        : "Payment not yet confirmed",
-    });
+    return res.redirect(
+      `${process.env.FRONTEND_BASE_URL}/?payment=pending`
+    );
   } catch (error) {
     console.error(
       "CALLBACK VERIFY ERROR:",
       error.response?.data || error.message
     );
 
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+    return res.redirect(
+      `${process.env.FRONTEND_BASE_URL}/?payment=error`
+    );
   }
 };
-  
 
 app.get("/payment/callback", handlePaymentCallback);
 app.get("/payments/callback", handlePaymentCallback);
