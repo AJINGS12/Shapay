@@ -1,19 +1,7 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const recoveryEmailTemplate = require("../templates/recoveryEmailTemplate");
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  family: 4, // force IPv4 to avoid Railway's IPv6 routing issue
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendRecoveryEmail = async ({
   to,
@@ -29,15 +17,20 @@ const sendRecoveryEmail = async ({
       retryLink: retryLink || `${process.env.FRONTEND_BASE_URL}/payments`,
     });
 
-    const info = await transporter.sendMail({
-      from: `"${merchantName}" <${process.env.GMAIL_USER}>`,
+    const { data, error } = await resend.emails.send({
+      from: "Shapay <onboarding@resend.dev>",
       to,
       subject: "There was an issue with your recent payment",
       html,
     });
 
-    console.log("Recovery email sent:", info.messageId);
-    return { success: true, messageId: info.messageId };
+    if (error) {
+      console.log("Email send error:", error.message || error);
+      return { success: false, error: error.message || error };
+    }
+
+    console.log("Recovery email sent:", data.id);
+    return { success: true, messageId: data.id };
   } catch (error) {
     console.log("Email send error:", error.message);
     return { success: false, error: error.message };
