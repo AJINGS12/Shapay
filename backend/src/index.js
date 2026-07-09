@@ -64,6 +64,72 @@ app.get("/", (req, res) => {
 });
 
 
+// PAYMENT CALLBACKS
+// IMPORTANT: registered BEFORE app.use("/payments", paymentRoutes) below.
+// Nomba's browser redirect back to this URL never carries the x-merchant-id
+// header, so if paymentRoutes (with its requireMerchant middleware) were
+// registered first, Express would match it first and block this callback
+// with a 401 before it ever reached this handler.
+const { verifyTransaction } = require("./services/nombaVerifyService");
+const { updatePaymentStatus } = require("./database/paymentStore");
+const { updateSubscription } = require("./database/subscriptionStore");
+
+const handlePaymentCallback = async (req, res) => {
+  console.log("CALLBACK HANDLER ENTERED", req.query);
+
+  try {
+    const { orderReference } = req.query;
+
+    if (!orderReference) {
+      console.log("CALLBACK: missing orderReference");
+      return res.status(400).json({
+        success: false,
+        message: "Missing orderReference",
+      });
+    }
+
+    console.log("CALLBACK: about to verify", orderReference);
+
+    const result = await verifyTransaction(orderReference);
+
+    console.log("CALLBACK: verify result", result);
+
+    if (result.success) {
+      await updatePaymentStatus(orderReference, "paid", {});
+
+      if (orderReference.startsWith("sub_")) {
+        await updateSubscription(orderReference, {
+          status: "active",
+          activated_at: new Date(),
+        });
+
+        console.log("Subscription activated:", { orderReference });
+      }
+    }
+
+    return res.json({
+      success: result.success,
+      message: result.success
+        ? "Payment completed"
+        : "Payment not yet confirmed",
+    });
+  } catch (error) {
+    console.error(
+      "CALLBACK VERIFY ERROR:",
+      error.response?.data || error.message
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+app.get("/payment/callback", handlePaymentCallback);
+app.get("/payments/callback", handlePaymentCallback);
+
+
 // Nomba Auth Test
 const { getAccessToken } = require("./services/nombaAuthService");
 
@@ -149,61 +215,6 @@ try {
 
   });
 }
-
-
-// PAYMENT CALLBACKS
-const { verifyTransaction } = require("./services/nombaVerifyService");
-const { updatePaymentStatus } = require("./database/paymentStore");
-const { updateSubscription } = require("./database/subscriptionStore");
-
-const handlePaymentCallback = async (req, res) => {
-  try {
-    const { orderReference } = req.query;
-
-    if (!orderReference) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing orderReference",
-      });
-    }
-
-    const result = await verifyTransaction(orderReference);
-
-    if (result.success) {
-      await updatePaymentStatus(orderReference, "paid", {});
-
-      if (orderReference.startsWith("sub_")) {
-        await updateSubscription(orderReference, {
-          status: "active",
-          activated_at: new Date(),
-        });
-
-        console.log("Subscription activated:", { orderReference });
-      }
-    }
-
-    return res.json({
-      success: result.success,
-      message: result.success
-        ? "Payment completed"
-        : "Payment not yet confirmed",
-    });
-  } catch (error) {
-    console.error(
-      "CALLBACK VERIFY ERROR:",
-      error.response?.data || error.message
-    );
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-};
-
-
-app.get("/payment/callback", handlePaymentCallback);
-app.get("/payments/callback", handlePaymentCallback);
 
 
 // GLOBAL ERROR HANDLER
