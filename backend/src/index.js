@@ -9,6 +9,8 @@ process.on("unhandledRejection", (reason) => {
   console.error(reason);
 });
 
+require("dns").setDefaultResultOrder("ipv4first");
+
 require("dotenv").config();
 
 console.log("NOMBA ENV CHECK:", {
