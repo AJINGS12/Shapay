@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import axios from "axios";
+import api from "../../lib/api";
 
 export default function PaymentTestPage() {
   const [amount, setAmount] =
@@ -20,8 +20,8 @@ export default function PaymentTestPage() {
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/payments/initialize`,
+      const response = await api.post(
+        "/payments/initialize",
         {
           amount: Number(amount),
           customerName,
