@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 
 type Payment = {
@@ -11,6 +12,9 @@ type Payment = {
 };
 
 export default function PaymentsPage() {
+  const searchParams = useSearchParams();
+  const paymentStatus = searchParams.get("payment");
+
   const [payments, setPayments] =
     useState<Payment[]>([]);
   const [customerName, setCustomerName] = useState("");
@@ -73,6 +77,24 @@ export default function PaymentsPage() {
           </button>
         </div>
       </div>
+
+      {paymentStatus === "success" && (
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-2xl p-5 mb-8">
+          Payment completed successfully!
+        </div>
+      )}
+
+      {paymentStatus === "pending" && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-5 mb-8">
+          Payment is still processing. Please refresh in a moment.
+        </div>
+      )}
+
+      {paymentStatus === "error" && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-5 mb-8">
+          Something went wrong confirming your payment.
+        </div>
+      )}
 
       <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm mb-10">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">

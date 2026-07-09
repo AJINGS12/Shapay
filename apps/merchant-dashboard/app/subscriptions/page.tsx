@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 
 type Subscription = {
@@ -16,6 +17,9 @@ type Subscription = {
 };
 
 export default function SubscriptionsPage() {
+  const searchParams = useSearchParams();
+  const paymentStatus = searchParams.get("payment");
+
   const [subscriptions, setSubscriptions] =
     useState<Subscription[]>([]);
   const [customerName, setCustomerName] = useState("");
@@ -159,6 +163,24 @@ export default function SubscriptionsPage() {
           customer subscriptions.
         </p>
       </div>
+
+      {paymentStatus === "success" && (
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-2xl p-5 mb-8">
+          Payment completed successfully! Your subscription is now active.
+        </div>
+      )}
+
+      {paymentStatus === "pending" && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-5 mb-8">
+          Payment is still processing. Please refresh in a moment.
+        </div>
+      )}
+
+      {paymentStatus === "error" && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-5 mb-8">
+          Something went wrong confirming your payment.
+        </div>
+      )}
 
       {/* CREATE SUBSCRIPTION FORM */}
 

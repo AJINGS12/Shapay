@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import api from "../lib/api";
 import Link from "next/link";
 
@@ -58,6 +59,9 @@ type Insight = {
 };
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const paymentStatus = searchParams.get("payment");
+
   const [analytics, setAnalytics] =
     useState<Analytics | null>(null);
 
@@ -321,6 +325,24 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        {paymentStatus === "success" && (
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-2xl p-5 mb-8">
+            Payment completed successfully!
+          </div>
+        )}
+
+        {paymentStatus === "pending" && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-5 mb-8">
+            Payment is still processing. Please refresh in a moment.
+          </div>
+        )}
+
+        {paymentStatus === "error" && (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-5 mb-8">
+            Something went wrong confirming your payment.
+          </div>
+        )}
 
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <button
