@@ -199,46 +199,50 @@ function HomeContent() {
 
   if (!analytics) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500 text-xl">Loading Dashboard...</p>
+      <main className="min-h-screen flex items-center justify-center bg-[#0A0A0B]">
+        <p className="text-[#9CA3AF] text-xl font-[Inter]">
+          Loading Dashboard...
+        </p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#F5F7FB] flex">
+    <main className="min-h-screen bg-[#0A0A0B] flex font-[Inter]">
       {/* MOBILE BACKDROP */}
 
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
         />
       )}
 
       {/* SIDEBAR */}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 p-6 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#0F0F11] border-r border-[#27272A] p-6 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between mb-10">
-          <h1 className="text-4xl font-bold text-blue-600">Shapay</h1>
+          <h1 className="text-3xl font-bold text-[#F5C518] font-[Space_Grotesk] tracking-tight">
+            Shapay
+          </h1>
 
           <button
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden text-gray-500 hover:text-gray-700"
+            className="md:hidden text-[#9CA3AF] hover:text-white"
           >
             <X size={24} />
           </button>
         </div>
 
-        <nav className="space-y-3">
+        <nav className="space-y-2">
           <Link
             href="/"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-3 bg-blue-600 text-white p-4 rounded-2xl"
+            className="flex items-center gap-3 bg-[#F5C518] text-black p-4 rounded-2xl font-semibold"
           >
             <LayoutDashboard size={20} />
             <span>Overview</span>
@@ -247,7 +251,7 @@ function HomeContent() {
           <Link
             href="/payments"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
+            className="flex items-center gap-3 text-[#9CA3AF] p-4 rounded-2xl hover:bg-[#1C1C21] hover:text-white cursor-pointer transition"
           >
             <CreditCard size={20} />
             <span>Payments</span>
@@ -256,7 +260,7 @@ function HomeContent() {
           <Link
             href="/subscriptions"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
+            className="flex items-center gap-3 text-[#9CA3AF] p-4 rounded-2xl hover:bg-[#1C1C21] hover:text-white cursor-pointer transition"
           >
             <Repeat size={20} />
             <span>Subscriptions</span>
@@ -265,7 +269,7 @@ function HomeContent() {
           <Link
             href="/activity"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
+            className="flex items-center gap-3 text-[#9CA3AF] p-4 rounded-2xl hover:bg-[#1C1C21] hover:text-white cursor-pointer transition"
           >
             <Activity size={20} />
             <span>Activity</span>
@@ -274,7 +278,7 @@ function HomeContent() {
           <Link
             href="/analytics"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
+            className="flex items-center gap-3 text-[#9CA3AF] p-4 rounded-2xl hover:bg-[#1C1C21] hover:text-white cursor-pointer transition"
           >
             <BarChart3 size={20} />
             <span>Analytics</span>
@@ -283,7 +287,7 @@ function HomeContent() {
           <Link
             href="/settings"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
+            className="flex items-center gap-3 text-[#9CA3AF] p-4 rounded-2xl hover:bg-[#1C1C21] hover:text-white cursor-pointer transition"
           >
             <Settings size={20} />
             <span>Settings</span>
@@ -300,30 +304,30 @@ function HomeContent() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden bg-white border border-gray-200 text-gray-700 p-3 rounded-2xl shadow-sm"
+              className="md:hidden bg-[#16161A] border border-[#27272A] text-[#9CA3AF] p-3 rounded-2xl"
             >
               <Menu size={24} />
             </button>
 
             <div>
-              <h2 className="text-3xl md:text-5xl font-bold text-gray-900">
+              <h2 className="text-3xl md:text-5xl font-bold text-white font-[Space_Grotesk] tracking-tight">
                 Welcome back 👋
               </h2>
 
-              <p className="text-gray-500 mt-1 md:mt-3 text-sm md:text-lg">
+              <p className="text-[#9CA3AF] mt-1 md:mt-3 text-sm md:text-lg">
                 Here’s what’s happening with your business today.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="hidden sm:block bg-white border border-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-semibold hover:bg-gray-50 transition">
+            <button className="hidden sm:block bg-[#16161A] border border-[#27272A] text-white px-6 py-4 rounded-2xl font-semibold hover:bg-[#1C1C21] transition">
               Merchant
             </button>
 
             <button
               onClick={handleLogout}
-              className="bg-blue-600 hover:bg-blue-700 transition text-white px-4 md:px-6 py-3 md:py-4 rounded-2xl font-semibold shadow-lg"
+              className="bg-[#F5C518] hover:bg-[#e0b512] transition text-black px-4 md:px-6 py-3 md:py-4 rounded-2xl font-semibold"
             >
               Logout
             </button>
@@ -331,19 +335,19 @@ function HomeContent() {
         </div>
 
         {paymentStatus === "success" && (
-          <div className="bg-green-50 border border-green-200 text-green-800 rounded-2xl p-5 mb-8">
+          <div className="bg-[#F5C518]/10 border border-[#F5C518]/30 text-[#F5C518] rounded-2xl p-5 mb-8">
             Payment completed successfully!
           </div>
         )}
 
         {paymentStatus === "pending" && (
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-5 mb-8">
+          <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-2xl p-5 mb-8">
             Payment is still processing. Please refresh in a moment.
           </div>
         )}
 
         {paymentStatus === "error" && (
-          <div className="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-5 mb-8">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl p-5 mb-8">
             Something went wrong confirming your payment.
           </div>
         )}
@@ -351,7 +355,7 @@ function HomeContent() {
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <button
             onClick={createCheckout}
-            className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg"
+            className="bg-[#F5C518] hover:bg-[#e0b512] transition text-black px-6 py-4 rounded-2xl font-semibold"
           >
             Generate Payment Checkout
           </button>
@@ -359,7 +363,7 @@ function HomeContent() {
           <button
             onClick={simulateFailure}
             disabled={simulating}
-            className="bg-red-500 hover:bg-red-600 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg disabled:opacity-50"
+            className="bg-transparent border border-red-500/50 hover:bg-red-500/10 transition text-red-400 px-6 py-4 rounded-2xl font-semibold disabled:opacity-50"
           >
             {simulating ? "Simulating..." : "Simulate Failed Payment"}
           </button>
@@ -368,62 +372,62 @@ function HomeContent() {
         {/* KPI CARDS */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-          <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
-            <p className="text-gray-500 text-sm md:text-base">
+          <div className="bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-7 border border-[#27272A]">
+            <p className="text-[#9CA3AF] text-sm md:text-base">
               Total Revenue
             </p>
 
-            <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-4">
+            <h3 className="text-2xl md:text-4xl font-bold text-white mt-2 md:mt-4 font-[JetBrains_Mono]">
               ₦{analytics.totalRevenue}
             </h3>
           </div>
 
-          <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
-            <p className="text-gray-500 text-sm md:text-base">
+          <div className="bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-7 border border-[#27272A]">
+            <p className="text-[#9CA3AF] text-sm md:text-base">
               Monthly Recurring Revenue
             </p>
 
-            <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-4">
+            <h3 className="text-2xl md:text-4xl font-bold text-white mt-2 md:mt-4 font-[JetBrains_Mono]">
               ₦{analytics.monthlyRecurringRevenue}
             </h3>
           </div>
 
-          <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
-            <p className="text-gray-500 text-sm md:text-base">
+          <div className="bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-7 border border-[#27272A]">
+            <p className="text-[#9CA3AF] text-sm md:text-base">
               Active Subscriptions
             </p>
 
-            <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-4">
+            <h3 className="text-2xl md:text-4xl font-bold text-white mt-2 md:mt-4 font-[JetBrains_Mono]">
               {analytics.activeSubscriptions}
             </h3>
           </div>
 
-          <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
-            <p className="text-gray-500 text-sm md:text-base">
+          <div className="bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-7 border border-[#27272A]">
+            <p className="text-[#9CA3AF] text-sm md:text-base">
               Total Payments
             </p>
 
-            <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mt-2 md:mt-4">
+            <h3 className="text-2xl md:text-4xl font-bold text-white mt-2 md:mt-4 font-[JetBrains_Mono]">
               {analytics.totalPayments}
             </h3>
           </div>
 
-          <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
-            <p className="text-gray-500 text-sm md:text-base">
+          <div className="bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-7 border border-[#27272A]">
+            <p className="text-[#9CA3AF] text-sm md:text-base">
               Successful Payments
             </p>
 
-            <h3 className="text-2xl md:text-4xl font-bold text-green-600 mt-2 md:mt-4">
+            <h3 className="text-2xl md:text-4xl font-bold text-emerald-400 mt-2 md:mt-4 font-[JetBrains_Mono]">
               {analytics.successfulPayments}
             </h3>
           </div>
 
-          <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-sm border border-gray-100">
-            <p className="text-gray-500 text-sm md:text-base">
+          <div className="bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-7 border border-[#27272A]">
+            <p className="text-[#9CA3AF] text-sm md:text-base">
               Failed Payments
             </p>
 
-            <h3 className="text-2xl md:text-4xl font-bold text-red-500 mt-2 md:mt-4">
+            <h3 className="text-2xl md:text-4xl font-bold text-red-400 mt-2 md:mt-4 font-[JetBrains_Mono]">
               {analytics.failedPayments}
             </h3>
           </div>
@@ -434,16 +438,16 @@ function HomeContent() {
         <div className="mt-8 md:mt-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
-              <h3 className="text-xl md:text-3xl font-bold text-gray-900">
+              <h3 className="text-xl md:text-3xl font-bold text-white font-[Space_Grotesk]">
                 AI Financial Insights
               </h3>
 
-              <p className="text-gray-500 mt-1 md:mt-2 text-sm md:text-base">
+              <p className="text-[#9CA3AF] mt-1 md:mt-2 text-sm md:text-base">
                 Intelligent operational insights powered by Shapay AI.
               </p>
             </div>
 
-            <div className="bg-blue-600 text-white px-4 py-2 md:px-5 md:py-3 rounded-2xl font-semibold shadow-lg text-sm md:text-base self-start">
+            <div className="bg-[#F5C518] text-black px-4 py-2 md:px-5 md:py-3 rounded-2xl font-semibold text-sm md:text-base self-start">
               AI Powered
             </div>
           </div>
@@ -452,17 +456,17 @@ function HomeContent() {
             {aiInsights.map((insight, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-7 border border-gray-100 shadow-sm"
+                className="bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-7 border border-[#27272A]"
               >
-                <div className="bg-blue-100 text-blue-600 text-xs md:text-sm font-semibold px-3 py-1.5 md:px-4 md:py-2 rounded-full inline-block mb-4 md:mb-5">
+                <div className="bg-[#F5C518]/10 text-[#F5C518] text-xs md:text-sm font-semibold px-3 py-1.5 md:px-4 md:py-2 rounded-full inline-block mb-4 md:mb-5">
                   AI Insight
                 </div>
 
-                <h4 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">
+                <h4 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4">
                   {insight.title}
                 </h4>
 
-                <p className="text-gray-600 text-sm md:text-base leading-6 md:leading-7">
+                <p className="text-[#9CA3AF] text-sm md:text-base leading-6 md:leading-7">
                   {insight.description}
                 </p>
               </div>
@@ -472,21 +476,24 @@ function HomeContent() {
 
         {/* CHART SECTION */}
 
-        <div className="mt-8 md:mt-10 bg-white rounded-2xl md:rounded-3xl p-5 md:p-8 border border-gray-100 shadow-sm">
+        <div className="mt-8 md:mt-10 bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-8 border border-[#27272A]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
-              <h3 className="text-lg md:text-2xl font-bold text-gray-900">
+              <h3 className="text-lg md:text-2xl font-bold text-white font-[Space_Grotesk]">
                 Revenue Overview
               </h3>
 
-              <p className="text-gray-500 mt-1 text-sm md:text-base">
+              <p className="text-[#9CA3AF] mt-1 text-sm md:text-base">
                 Revenue analytics and recurring billing growth.
               </p>
             </div>
 
-            <button className="bg-blue-600 text-white px-4 py-2.5 md:px-5 md:py-3 rounded-xl text-sm md:text-base w-full sm:w-auto">
+            <Link
+              href="/analytics"
+              className="bg-[#F5C518] text-black px-4 py-2.5 md:px-5 md:py-3 rounded-xl text-sm md:text-base w-full sm:w-auto text-center font-semibold hover:bg-[#e0b512] transition"
+            >
               View Analytics
-            </button>
+            </Link>
           </div>
 
           <div className="h-72">
@@ -500,21 +507,28 @@ function HomeContent() {
                     x2="0"
                     y2="1"
                   >
-                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.4} />
+                    <stop offset="5%" stopColor="#F5C518" stopOpacity={0.4} />
 
-                    <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                    <stop offset="95%" stopColor="#F5C518" stopOpacity={0} />
                   </linearGradient>
                 </defs>
 
-                <XAxis dataKey="month" />
+                <XAxis dataKey="month" stroke="#9CA3AF" />
 
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#16161A",
+                    border: "1px solid #27272A",
+                    borderRadius: "12px",
+                    color: "#F5F5F5",
+                  }}
+                />
 
                 <Area
                   type="monotone"
                   dataKey="revenue"
-                  stroke="#2563EB"
-                  strokeWidth={4}
+                  stroke="#F5C518"
+                  strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#colorRevenue)"
                 />
@@ -525,14 +539,14 @@ function HomeContent() {
 
         {/* PAYMENTS TABLE */}
 
-        <div className="mt-8 md:mt-10 bg-white rounded-2xl md:rounded-3xl p-5 md:p-8 border border-gray-100 shadow-sm">
+        <div className="mt-8 md:mt-10 bg-[#16161A] rounded-2xl md:rounded-3xl p-5 md:p-8 border border-[#27272A]">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg md:text-2xl font-bold text-gray-900">
+              <h3 className="text-lg md:text-2xl font-bold text-white font-[Space_Grotesk]">
                 Recent Payments
               </h3>
 
-              <p className="text-gray-500 mt-1 text-sm md:text-base">
+              <p className="text-[#9CA3AF] mt-1 text-sm md:text-base">
                 Latest merchant transactions.
               </p>
             </div>
@@ -543,18 +557,18 @@ function HomeContent() {
             {payments.map((payment, index) => (
               <div
                 key={index}
-                className="border border-gray-100 rounded-2xl p-4"
+                className="border border-[#27272A] rounded-2xl p-4"
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-gray-900 font-medium text-sm">
+                  <p className="text-white font-medium text-sm">
                     {payment.customerName}
                   </p>
 
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
                       payment.status === "paid"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-600"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-red-500/10 text-red-400"
                     }`}
                   >
                     {payment.status}
@@ -562,11 +576,11 @@ function HomeContent() {
                 </div>
 
                 <div className="flex items-center justify-between mt-2">
-                  <p className="text-gray-700 font-semibold">
+                  <p className="text-white font-semibold font-[JetBrains_Mono]">
                     ₦{payment.amount}
                   </p>
 
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-[#9CA3AF] text-xs">
                     {new Date(payment.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -578,25 +592,25 @@ function HomeContent() {
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left border-b border-gray-100">
-                  <th className="pb-4 text-gray-500">Customer</th>
+                <tr className="text-left border-b border-[#27272A]">
+                  <th className="pb-4 text-[#9CA3AF] font-normal">Customer</th>
 
-                  <th className="pb-4 text-gray-500">Amount</th>
+                  <th className="pb-4 text-[#9CA3AF] font-normal">Amount</th>
 
-                  <th className="pb-4 text-gray-500">Status</th>
+                  <th className="pb-4 text-[#9CA3AF] font-normal">Status</th>
 
-                  <th className="pb-4 text-gray-500">Date</th>
+                  <th className="pb-4 text-[#9CA3AF] font-normal">Date</th>
                 </tr>
               </thead>
 
               <tbody>
                 {payments.map((payment, index) => (
-                  <tr key={index} className="border-b border-gray-50">
-                    <td className="py-5 text-gray-900 font-medium">
+                  <tr key={index} className="border-b border-[#1C1C21]">
+                    <td className="py-5 text-white font-medium">
                       {payment.customerName}
                     </td>
 
-                    <td className="py-5 text-gray-700">
+                    <td className="py-5 text-white font-[JetBrains_Mono]">
                       ₦{payment.amount}
                     </td>
 
@@ -604,15 +618,15 @@ function HomeContent() {
                       <span
                         className={`px-4 py-2 rounded-full text-sm font-medium ${
                           payment.status === "paid"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-600"
+                            ? "bg-emerald-500/10 text-emerald-400"
+                            : "bg-red-500/10 text-red-400"
                         }`}
                       >
                         {payment.status}
                       </span>
                     </td>
 
-                    <td className="py-5 text-gray-500">
+                    <td className="py-5 text-[#9CA3AF]">
                       {new Date(payment.createdAt).toLocaleDateString()}
                     </td>
                   </tr>
@@ -624,13 +638,13 @@ function HomeContent() {
 
         {/* ACTIVITY FEED */}
 
-        <div className="mt-10 bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+        <div className="mt-10 bg-[#16161A] rounded-3xl p-8 border border-[#27272A]">
           <div className="mb-6">
-            <h3 className="text-2xl font-bold text-gray-900">
+            <h3 className="text-2xl font-bold text-white font-[Space_Grotesk]">
               Activity Feed
             </h3>
 
-            <p className="text-gray-500 mt-1">
+            <p className="text-[#9CA3AF] mt-1">
               Recent merchant events and operational activity.
             </p>
           </div>
@@ -639,24 +653,24 @@ function HomeContent() {
             {activities.slice(0, 6).map((activity, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between border border-gray-100 rounded-2xl p-5"
+                className="flex items-center justify-between border border-[#27272A] rounded-2xl p-5"
               >
                 <div>
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-white">
                     {activity.customerName}
                   </p>
 
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-[#9CA3AF] text-sm mt-1">
                     {activity.type} • {activity.status}
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <p className="font-bold text-gray-900">
+                  <p className="font-bold text-white font-[JetBrains_Mono]">
                     ₦{activity.amount}
                   </p>
 
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-[#9CA3AF] mt-1">
                     {new Date(activity.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -673,8 +687,8 @@ export default function Home() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen flex items-center justify-center">
-          <p className="text-gray-500 text-xl">Loading Dashboard...</p>
+        <main className="min-h-screen flex items-center justify-center bg-[#0A0A0B]">
+          <p className="text-[#9CA3AF] text-xl">Loading Dashboard...</p>
         </main>
       }
     >
