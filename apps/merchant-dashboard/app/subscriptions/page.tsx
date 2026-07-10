@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 
@@ -16,7 +16,7 @@ type Subscription = {
   cardToken?: string | null;
 };
 
-export default function SubscriptionsPage() {
+function SubscriptionsContent() {
   const searchParams = useSearchParams();
   const paymentStatus = searchParams.get("payment");
 
@@ -362,5 +362,19 @@ export default function SubscriptionsPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SubscriptionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center">
+          <p className="text-gray-500 text-xl">Loading...</p>
+        </main>
+      }
+    >
+      <SubscriptionsContent />
+    </Suspense>
   );
 }

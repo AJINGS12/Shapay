@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../lib/api";
 import Link from "next/link";
@@ -58,7 +58,7 @@ type Insight = {
   description: string;
 };
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const paymentStatus = searchParams.get("payment");
 
@@ -262,13 +262,13 @@ export default function Home() {
             <span>Subscriptions</span>
           </Link>
 
-           <Link
+          <Link
             href="/activity"
             onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
-            >
-           <Activity size={20} />
-          <span>Activity</span>
+          >
+            <Activity size={20} />
+            <span>Activity</span>
           </Link>
 
           <Link
@@ -666,5 +666,19 @@ export default function Home() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center">
+          <p className="text-gray-500 text-xl">Loading Dashboard...</p>
+        </main>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }

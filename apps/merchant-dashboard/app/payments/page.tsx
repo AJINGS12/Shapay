@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 
@@ -11,7 +11,7 @@ type Payment = {
   createdAt: string;
 };
 
-export default function PaymentsPage() {
+function PaymentsContent() {
   const searchParams = useSearchParams();
   const paymentStatus = searchParams.get("payment");
 
@@ -203,5 +203,19 @@ export default function PaymentsPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function PaymentsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center">
+          <p className="text-gray-500 text-xl">Loading...</p>
+        </main>
+      }
+    >
+      <PaymentsContent />
+    </Suspense>
   );
 }
