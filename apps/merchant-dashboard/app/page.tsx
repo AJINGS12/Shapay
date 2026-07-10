@@ -262,10 +262,14 @@ export default function Home() {
             <span>Subscriptions</span>
           </Link>
 
-          <div className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition">
-            <Activity size={20} />
-            <span>Activity</span>
-          </div>
+           <Link
+            href="/activity"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 text-gray-700 p-4 rounded-2xl hover:bg-blue-50 cursor-pointer transition"
+            >
+           <Activity size={20} />
+          <span>Activity</span>
+          </Link>
 
           <Link
             href="/analytics"
