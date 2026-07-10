@@ -175,6 +175,7 @@ const reportingRoutes = require("./routes/reportingRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const recoveryAnalyticsRoutes = require("./routes/recoveryAnalyticsRoutes");
 const simulationRoutes = require("./routes/simulationRoutes");
+const merchantRoutes = require("./routes/merchantRoutes");
 
 
 app.use("/payments", paymentRoutes);
@@ -184,6 +185,7 @@ app.use("/reports", reportingRoutes);
 app.use("/", aiRoutes);
 app.use("/", recoveryAnalyticsRoutes);
 app.use("/", simulationRoutes);
+app.use("/merchant", merchantRoutes);
 
 
 
