@@ -44,21 +44,21 @@ export default function LoginPage() {
     };
 
   return (
-    <main className="min-h-screen bg-[#F5F7FB] flex items-center justify-center p-10">
-      <div className="w-full max-w-md bg-white rounded-3xl p-10 border border-gray-100 shadow-sm">
+    <main className="min-h-screen bg-[#0A0A0B] flex items-center justify-center p-10 font-[Inter]">
+      <div className="w-full max-w-md bg-[#16161A] rounded-3xl p-10 border border-[#27272A]">
         <div className="mb-10 text-center">
-          <h1 className="text-5xl font-bold text-blue-600">
+          <h1 className="text-5xl font-bold text-[#F5C518] font-[Space_Grotesk] tracking-tight">
             Shapay
           </h1>
 
-          <p className="text-gray-500 mt-4">
+          <p className="text-[#9CA3AF] mt-4">
             Merchant Infrastructure Platform
           </p>
         </div>
 
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
               Email Address
             </label>
 
@@ -71,12 +71,12 @@ export default function LoginPage() {
                   e.target.value
                 )
               }
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-500"
+              className="w-full bg-[#0A0A0B] border border-[#27272A] rounded-2xl px-5 py-4 text-white placeholder:text-[#5C5C63] outline-none focus:border-[#F5C518] transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
               Password
             </label>
 
@@ -89,14 +89,14 @@ export default function LoginPage() {
                   e.target.value
                 )
               }
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-500"
+              className="w-full bg-[#0A0A0B] border border-[#27272A] rounded-2xl px-5 py-4 text-white placeholder:text-[#5C5C63] outline-none focus:border-[#F5C518] transition"
             />
           </div>
 
           <button
             onClick={handleLogin}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 transition text-white py-4 rounded-2xl font-semibold shadow-lg"
+            className="w-full bg-[#F5C518] hover:bg-[#e0b512] transition text-black py-4 rounded-2xl font-semibold disabled:opacity-50"
           >
             {loading
               ? "Signing In..."
@@ -105,11 +105,11 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-gray-500">
-            Don’t have an account?{" "}
+          <p className="text-[#9CA3AF]">
+            Don't have an account?{" "}
             <Link
               href="/signup"
-              className="text-blue-600 font-semibold"
+              className="text-[#F5C518] font-semibold"
             >
               Create Account
             </Link>
