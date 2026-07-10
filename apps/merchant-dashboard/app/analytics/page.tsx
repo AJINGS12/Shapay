@@ -77,16 +77,23 @@ export default function AnalyticsPage() {
       ]
     : [];
 
+  const tooltipStyle = {
+    backgroundColor: "#16161A",
+    border: "1px solid #27272A",
+    borderRadius: "12px",
+    color: "#F5F5F5",
+  };
+
   return (
-    <main className="min-h-screen bg-[#F5F7FB] p-10">
+    <main className="min-h-screen bg-[#0A0A0B] p-6 md:p-10 font-[Inter]">
       {/* HEADER */}
 
       <div className="mb-10">
-        <h1 className="text-5xl font-bold text-gray-900">
+        <h1 className="text-4xl md:text-5xl font-bold text-white font-[Space_Grotesk] tracking-tight">
           Analytics
         </h1>
 
-        <p className="text-gray-500 mt-3 text-lg">
+        <p className="text-[#9CA3AF] mt-3 text-lg">
           Monitor platform revenue,
           payments, and subscription
           performance.
@@ -94,74 +101,74 @@ export default function AnalyticsPage() {
       </div>
 
       {!analytics ? (
-        <p>Loading analytics...</p>
+        <p className="text-[#9CA3AF]">Loading analytics...</p>
       ) : (
         <>
           {/* KPI CARDS */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-[#16161A] rounded-3xl p-6 border border-[#27272A]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500">
+                  <p className="text-[#9CA3AF]">
                     Total Revenue
                   </p>
 
-                  <h2 className="text-3xl font-bold text-gray-900 mt-3">
+                  <h2 className="text-3xl font-bold text-white mt-3 font-[JetBrains_Mono]">
                     ₦{analytics.totalRevenue}
                   </h2>
                 </div>
 
-                <div className="bg-blue-100 p-4 rounded-2xl">
-                  <Wallet className="text-blue-600" />
+                <div className="bg-[#F5C518]/10 p-4 rounded-2xl">
+                  <Wallet className="text-[#F5C518]" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-[#16161A] rounded-3xl p-6 border border-[#27272A]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500">
+                  <p className="text-[#9CA3AF]">
                     Monthly Recurring Revenue
                   </p>
 
-                  <h2 className="text-3xl font-bold text-gray-900 mt-3">
+                  <h2 className="text-3xl font-bold text-white mt-3 font-[JetBrains_Mono]">
                     ₦{analytics.monthlyRecurringRevenue}
                   </h2>
                 </div>
 
-                <div className="bg-blue-100 p-4 rounded-2xl">
-                  <Repeat className="text-blue-600" />
+                <div className="bg-[#F5C518]/10 p-4 rounded-2xl">
+                  <Repeat className="text-[#F5C518]" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-[#16161A] rounded-3xl p-6 border border-[#27272A]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500">
+                  <p className="text-[#9CA3AF]">
                     Total Payments
                   </p>
 
-                  <h2 className="text-3xl font-bold text-gray-900 mt-3">
+                  <h2 className="text-3xl font-bold text-white mt-3 font-[JetBrains_Mono]">
                     {analytics.totalPayments}
                   </h2>
                 </div>
 
-                <div className="bg-blue-100 p-4 rounded-2xl">
-                  <CreditCard className="text-blue-600" />
+                <div className="bg-[#F5C518]/10 p-4 rounded-2xl">
+                  <CreditCard className="text-[#F5C518]" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-[#16161A] rounded-3xl p-6 border border-[#27272A]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500">
+                  <p className="text-[#9CA3AF]">
                     Success Rate
                   </p>
 
-                  <h2 className="text-3xl font-bold text-gray-900 mt-3">
+                  <h2 className="text-3xl font-bold text-white mt-3 font-[JetBrains_Mono]">
                     {analytics.totalPayments === 0
                       ? 0
                       : Math.round(
@@ -173,8 +180,8 @@ export default function AnalyticsPage() {
                   </h2>
                 </div>
 
-                <div className="bg-blue-100 p-4 rounded-2xl">
-                  <TrendingUp className="text-blue-600" />
+                <div className="bg-[#F5C518]/10 p-4 rounded-2xl">
+                  <TrendingUp className="text-[#F5C518]" />
                 </div>
               </div>
             </div>
@@ -182,39 +189,39 @@ export default function AnalyticsPage() {
 
           {/* REVENUE CHART */}
 
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm mb-10">
+          <div className="bg-[#16161A] rounded-3xl p-8 border border-[#27272A] mb-10">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-white font-[Space_Grotesk]">
                 Revenue Trend
               </h2>
 
-              <p className="text-gray-500 mt-2">
+              <p className="text-[#9CA3AF] mt-2">
                 Last 14 days of revenue from successful payments.
               </p>
             </div>
 
             <div className="h-[400px]">
               {chartData.every((point) => point.revenue === 0) ? (
-                <div className="h-full flex items-center justify-center text-gray-400">
+                <div className="h-full flex items-center justify-center text-[#5C5C63]">
                   No revenue recorded in the last 14 days.
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272A" />
 
-                    <XAxis dataKey="day" />
+                    <XAxis dataKey="day" stroke="#9CA3AF" />
 
-                    <YAxis />
+                    <YAxis stroke="#9CA3AF" />
 
-                    <Tooltip />
+                    <Tooltip contentStyle={tooltipStyle} />
 
                     <Line
                       type="monotone"
                       dataKey="revenue"
-                      stroke="#2563EB"
-                      strokeWidth={4}
-                      dot={{ r: 3 }}
+                      stroke="#F5C518"
+                      strokeWidth={3}
+                      dot={{ r: 3, fill: "#F5C518" }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -225,37 +232,37 @@ export default function AnalyticsPage() {
           {/* BREAKDOWN CHARTS */}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">
+            <div className="bg-[#16161A] rounded-3xl p-8 border border-[#27272A]">
+              <h2 className="text-xl font-bold text-white mb-6 font-[Space_Grotesk]">
                 Payment Status Breakdown
               </h2>
 
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={paymentBreakdown}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="label" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#2563EB" radius={[8, 8, 0, 0]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272A" />
+                    <XAxis dataKey="label" stroke="#9CA3AF" />
+                    <YAxis allowDecimals={false} stroke="#9CA3AF" />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Bar dataKey="value" fill="#F5C518" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">
+            <div className="bg-[#16161A] rounded-3xl p-8 border border-[#27272A]">
+              <h2 className="text-xl font-bold text-white mb-6 font-[Space_Grotesk]">
                 Subscription Status Breakdown
               </h2>
 
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={subscriptionBreakdown}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="label" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#16A34A" radius={[8, 8, 0, 0]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272A" />
+                    <XAxis dataKey="label" stroke="#9CA3AF" />
+                    <YAxis allowDecimals={false} stroke="#9CA3AF" />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Bar dataKey="value" fill="#34D399" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

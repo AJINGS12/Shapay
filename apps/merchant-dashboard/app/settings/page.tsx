@@ -43,29 +43,31 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F5F7FB] p-10">
+    <main className="min-h-screen bg-[#0A0A0B] p-6 md:p-10 font-[Inter]">
       <div className="mb-10">
-        <h1 className="text-5xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-4xl md:text-5xl font-bold text-white font-[Space_Grotesk] tracking-tight">
+          Settings
+        </h1>
 
-        <p className="text-gray-500 mt-3 text-lg">
+        <p className="text-[#9CA3AF] mt-3 text-lg">
           Manage your business profile.
         </p>
       </div>
 
-      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm max-w-xl">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+      <div className="bg-[#16161A] rounded-3xl p-8 border border-[#27272A] max-w-xl">
+        <h2 className="text-2xl font-bold text-white mb-6 font-[Space_Grotesk]">
           Business Profile
         </h2>
 
         {message && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-2xl p-4 mb-6">
+          <div className="bg-[#F5C518]/10 border border-[#F5C518]/30 text-[#F5C518] rounded-2xl p-4 mb-6">
             {message}
           </div>
         )}
 
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
               Business Name
             </label>
 
@@ -73,13 +75,13 @@ export default function SettingsPage() {
               type="text"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 outline-none focus:border-blue-500"
+              className="w-full bg-[#0A0A0B] border border-[#27272A] rounded-2xl px-5 py-4 outline-none text-white placeholder:text-[#5C5C63] focus:border-[#F5C518] transition"
               placeholder="Your business name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
               Business Email
             </label>
 
@@ -87,7 +89,7 @@ export default function SettingsPage() {
               type="email"
               value={businessEmail}
               onChange={(e) => setBusinessEmail(e.target.value)}
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 outline-none focus:border-blue-500"
+              className="w-full bg-[#0A0A0B] border border-[#27272A] rounded-2xl px-5 py-4 outline-none text-white placeholder:text-[#5C5C63] focus:border-[#F5C518] transition"
               placeholder="business@example.com"
             />
           </div>
@@ -95,7 +97,7 @@ export default function SettingsPage() {
           <button
             onClick={saveProfile}
             disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-4 rounded-2xl font-semibold shadow-lg disabled:opacity-50"
+            className="bg-[#F5C518] hover:bg-[#e0b512] transition text-black px-6 py-4 rounded-2xl font-semibold disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>

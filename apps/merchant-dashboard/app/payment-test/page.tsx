@@ -43,20 +43,20 @@ export default function PaymentTestPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F5F7FB] flex items-center justify-center p-6">
-      <div className="w-full max-w-xl bg-white rounded-3xl p-10 shadow-sm border border-gray-100">
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">
+    <main className="min-h-screen bg-[#0A0A0B] flex items-center justify-center p-6 font-[Inter]">
+      <div className="w-full max-w-xl bg-[#16161A] rounded-3xl p-10 border border-[#27272A]">
+        <h1 className="text-4xl font-bold text-white mb-3 font-[Space_Grotesk]">
           Test Payment
         </h1>
 
-        <p className="text-gray-500 mb-8">
+        <p className="text-[#9CA3AF] mb-8">
           Initialize a payment through
           Shapay infrastructure.
         </p>
 
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
               Customer Name
             </label>
 
@@ -68,13 +68,13 @@ export default function PaymentTestPage() {
                   e.target.value
                 )
               }
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 text-gray-900 placeholder:text-gray-400"
+              className="w-full bg-[#0A0A0B] border border-[#27272A] rounded-2xl px-5 py-4 outline-none focus:border-[#F5C518] transition text-white placeholder:text-[#5C5C63]"
               placeholder="Ismail"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
               Customer Email
             </label>
 
@@ -86,13 +86,13 @@ export default function PaymentTestPage() {
                   e.target.value
                 )
               }
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 text-gray-900 placeholder:text-gray-400"
+              className="w-full bg-[#0A0A0B] border border-[#27272A] rounded-2xl px-5 py-4 outline-none focus:border-[#F5C518] transition text-white placeholder:text-[#5C5C63]"
               placeholder="test@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
               Amount (₦)
             </label>
 
@@ -102,7 +102,7 @@ export default function PaymentTestPage() {
               onChange={(e) =>
                 setAmount(e.target.value)
               }
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 text-gray-900 placeholder:text-gray-400"
+              className="w-full bg-[#0A0A0B] border border-[#27272A] rounded-2xl px-5 py-4 outline-none focus:border-[#F5C518] transition text-white placeholder:text-[#5C5C63] font-[JetBrains_Mono]"
               placeholder="500"
             />
           </div>
@@ -110,7 +110,7 @@ export default function PaymentTestPage() {
           <button
             onClick={handlePayment}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 transition text-white py-4 rounded-2xl font-semibold text-lg"
+            className="w-full bg-[#F5C518] hover:bg-[#e0b512] transition text-black py-4 rounded-2xl font-semibold text-lg disabled:opacity-50"
           >
             {loading
               ? "Initializing..."
