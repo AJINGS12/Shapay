@@ -16,6 +16,7 @@ const {
 } = require("../services/nombaCheckoutService");
 
 const {
+  getSavedCardByEmail,
   chargeTokenizedCard,
 } = require("../services/nombaTokenService");
 
@@ -163,30 +164,44 @@ router.post("/:subscriptionId/renew", async (req, res) => {
       });
     }
 
-    if (!subscription.card_token) {
+    // Prefer the token already captured via webhook; fall back to a live
+    // reconciliation lookup in case the webhook never fired for this subscription.
+    let tokenKey = subscription.card_token;
+
+    if (!tokenKey) {
+      const savedCard = await getSavedCardByEmail(subscription.customerEmail);
+      tokenKey = savedCard?.tokenKey || null;
+
+      if (tokenKey) {
+        await updateSubscription(subscriptionId, { card_token: tokenKey });
+      }
+    }
+
+    if (!tokenKey) {
       return res.status(200).json({
         success: false,
         message:
-          "No saved card token available yet. Card tokenization requires an additional customer OTP consent step during checkout, which this sandbox environment does not expose in its hosted checkout UI. In production, once a customer consents to save their card, renewal charges will process automatically via Nomba's tokenized card payment API.",
+          "No saved card token available yet for this customer. This is captured automatically the first time their card payment succeeds with tokenization enabled.",
       });
     }
-
-    const customerId = `cus_${subscription.customerEmail.replace(
-      /[^a-zA-Z0-9]/g,
-      "_"
-    )}`;
 
     const renewalRef = `${subscriptionId}_renewal_${Date.now()}`;
 
     const chargeResult = await chargeTokenizedCard({
       orderReference: renewalRef,
-      customerId,
       customerEmail: subscription.customerEmail,
       amount: subscription.amount,
-      tokenKey: subscription.card_token,
+      tokenKey,
     });
 
-    const success = chargeResult?.data?.status === true;
+    // IMPORTANT: check the TOP-LEVEL status field, not chargeResult.data.status.
+    // data.status can be true when an OTP was merely dispatched (not settled,
+    // e.g. for Verve cards) — the top-level status reflects actual completion.
+    const success = chargeResult?.status === true;
+
+    const responseMessage =
+      chargeResult?.data?.message ||
+      (success ? "Subscription renewed" : "Renewal failed");
 
     if (success) {
       const nextBillingDate = new Date(
@@ -202,9 +217,7 @@ router.post("/:subscriptionId/renew", async (req, res) => {
 
     res.json({
       success,
-      message: success
-        ? "Subscription renewed"
-        : "Renewal failed",
+      message: responseMessage,
       raw: chargeResult,
     });
   } catch (error) {

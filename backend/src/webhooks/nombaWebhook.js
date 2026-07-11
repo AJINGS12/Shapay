@@ -151,12 +151,24 @@ router.post(
             typeof matchedReference === "string" &&
             matchedReference.startsWith("sub_")
           ) {
+            // The tokenKey (if the card was tokenized on this checkout)
+            // arrives here in the webhook payload, not in the checkout
+            // response or the verify-transaction response.
+            const tokenizedCardData = payload.data?.tokenizedCardData;
+
             await updateSubscription(matchedReference, {
               status: "active",
               activatedAt: new Date(),
+              ...(tokenizedCardData?.tokenKey
+                ? { card_token: tokenizedCardData.tokenKey }
+                : {}),
             });
 
-            console.log("Subscription activated");
+            console.log("Subscription activated", {
+              matchedReference,
+              tokenCaptured: !!tokenizedCardData?.tokenKey,
+              cardType: tokenizedCardData?.cardType || null,
+            });
           }
 
           break;
